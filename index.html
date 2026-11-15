@@ -1,0 +1,4959 @@
+<!doctype html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f4f3ee">
+  <title>Quillframe — 寫作與視覺小說工作室</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Noto+Serif+TC:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --paper: #f4f3ee;
+      --white: #fffefa;
+      --ink: #252724;
+      --muted: #85877f;
+      --line: #e4e3dc;
+      --green: #285f48;
+      --green-soft: #e1eee4;
+      --orange: #e77e56;
+      --blue: #5a819a;
+      --serif: 'Noto Serif TC', Georgia, serif;
+      --sans: 'DM Sans', 'Noto Sans TC', sans-serif;
+      --mono: 'DM Mono', monospace;
+      --rail: 72px;
+      --side: 240px
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font: 14px var(--sans);
+      letter-spacing: 0
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit
+    }
+
+    button {
+      color: inherit;
+      cursor: pointer
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible {
+      outline: 2px solid #6b9c79;
+      outline-offset: 2px
+    }
+
+    .app {
+      min-height: 100dvh;
+      display: grid;
+      grid-template-columns: var(--rail) var(--side) minmax(0, 1fr);
+      grid-template-rows: 62px 1fr
+    }
+
+    .topbar {
+      grid-column: 1/-1;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 0 23px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 254, 250, .88);
+      z-index: 4
+    }
+
+    .brand {
+      width: var(--rail);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      letter-spacing: .2px;
+      white-space: nowrap
+    }
+
+    .brand-mark {
+      height: 28px;
+      width: 28px;
+      border-radius: 8px;
+      background: var(--green);
+      color: white;
+      display: grid;
+      place-items: center;
+      font: 18px var(--serif)
+    }
+
+    .project-name {
+      border: 0;
+      background: transparent;
+      font: 500 14px var(--serif);
+      max-width: 220px
+    }
+
+    .top-spacer {
+      flex: 1
+    }
+
+    .save-state {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    .save-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #62a57b
+    }
+
+    .top-action,
+    .icon-btn,
+    .rail-btn,
+    .format-btn,
+    .scene-row button,
+    .tool-btn {
+      border: 0;
+      background: transparent
+    }
+
+    .top-action {
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fffefa;
+      font-size: 12px
+    }
+
+    .top-action:hover {
+      border-color: #9ba99a
+    }
+
+    .sync-btn {
+      background: var(--green);
+      border-color: var(--green);
+      color: white
+    }
+
+    .sync-btn:hover {
+      background: #1f4c39
+    }
+
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #e6d8c9;
+      color: #6b4836;
+      font-size: 11px
+    }
+
+    .rail {
+      grid-row: 2;
+      grid-column: 1;
+      background: #ecebe5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 15px 0
+    }
+
+    .rail-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      color: #777970;
+      font-size: 18px;
+      position: relative
+    }
+
+    .rail-btn:hover {
+      background: #fffefa;
+      color: var(--ink)
+    }
+
+    .rail-btn.active {
+      background: var(--green-soft);
+      color: var(--green)
+    }
+
+    .rail-btn[title]:hover:after {
+      content: attr(title);
+      position: absolute;
+      left: 50px;
+      background: #252724;
+      color: #fff;
+      padding: 6px 9px;
+      border-radius: 5px;
+      font: 11px var(--sans);
+      white-space: nowrap;
+      z-index: 8
+    }
+
+    .rail-spacer {
+      flex: 1
+    }
+
+    .sidebar {
+      grid-column: 2;
+      grid-row: 2;
+      border-right: 1px solid var(--line);
+      padding: 25px 18px;
+      background: #f8f7f2;
+      overflow-y: auto
+    }
+
+    .side-label {
+      font: 10px var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .7px;
+      color: var(--muted);
+      margin: 0 0 12px 7px
+    }
+
+    .project-switch {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 9px;
+      margin-bottom: 27px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 7px
+    }
+
+    .project-cover {
+      width: 32px;
+      height: 37px;
+      border-radius: 4px;
+      background: linear-gradient(145deg, #9fb59b, #345b4c);
+      position: relative;
+      overflow: hidden
+    }
+
+    .project-switch strong {
+      font-size: 12px;
+      display: block
+    }
+
+    .project-switch small {
+      font-size: 10px;
+      color: var(--muted)
+    }
+
+    .project-switch select {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      margin: 3px 0;
+      padding: 4px 5px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--white);
+      color: var(--ink);
+      font: 11px var(--sans)
+    }
+
+    .project-controls,
+    .novel-markers {
+      display: flex;
+      gap: 5px
+    }
+
+    .project-controls {
+      flex-basis: 100%;
+      justify-content: flex-end
+    }
+
+    .project-controls button {
+      width: 29px;
+      height: 27px;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--white);
+      color: var(--ink)
+    }
+
+    .project-controls button:hover,
+    .novel-markers button:hover {
+      border-color: #9ba99a
+    }
+
+    .side-nav {
+      display: grid;
+      gap: 3px;
+      margin-bottom: 27px
+    }
+
+    .nav-item {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      color: #65675f;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer
+    }
+
+    .nav-item.active {
+      background: var(--green-soft);
+      color: var(--green);
+      font-weight: 600
+    }
+
+    .nav-item .nav-icon {
+      font-size: 15px;
+      width: 18px;
+      text-align: center
+    }
+
+    .scene-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 0 4px 9px
+    }
+
+    .scene-head .side-label {
+      margin: 0
+    }
+
+    .add-scene {
+      border: 0;
+      background: transparent;
+      color: var(--green);
+      font-size: 18px
+    }
+
+    .scene-list {
+      display: grid;
+      gap: 4px
+    }
+
+    .scene-row {
+      display: grid;
+      grid-template-columns: 28px 1fr 18px;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      border-radius: 6px;
+      color: #676960;
+      cursor: pointer
+    }
+
+    .scene-row.active {
+      background: #eaece4;
+      color: var(--ink)
+    }
+
+    .scene-num {
+      font: 10px var(--mono);
+      color: #9a9c93
+    }
+
+    .scene-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12px
+    }
+
+    .scene-row button {
+      opacity: 0;
+      color: var(--muted)
+    }
+
+    .scene-row:hover button {
+      opacity: 1
+    }
+
+    .sidebar-bottom {
+      margin-top: 28px;
+      border-top: 1px solid var(--line);
+      padding: 19px 4px 0
+    }
+
+    .streak-label {
+      font: 10px var(--mono);
+      color: var(--muted)
+    }
+
+    .streak {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 9px 0
+    }
+
+    .streak strong {
+      font: 23px var(--serif);
+      color: var(--green)
+    }
+
+    .streak span {
+      font-size: 11px;
+      color: #66685f
+    }
+
+    .week {
+      display: flex;
+      gap: 6px;
+      margin-top: 12px
+    }
+
+    .streak-log-button {
+      margin-top: 12px;
+      padding: 6px 0;
+      border: 0;
+      background: transparent;
+      color: var(--green);
+      font: 11px var(--sans);
+      cursor: pointer
+    }
+
+    .streak-log-button:hover {
+      text-decoration: underline
+    }
+
+    .day {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #e9e8e1;
+      color: #9b9d94;
+      font: 9px var(--mono)
+    }
+
+    .day.done {
+      background: #558366;
+      color: white
+    }
+
+    .day.today {
+      outline: 1px solid var(--green);
+      outline-offset: 2px
+    }
+
+    .workspace {
+      grid-column: 3;
+      grid-row: 2;
+      min-width: 0;
+      overflow: auto
+    }
+
+    .page {
+      display: none;
+      min-height: calc(100dvh - 62px)
+    }
+
+    .page.active {
+      display: block
+    }
+
+    .editor-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      min-height: calc(100dvh - 62px)
+    }
+
+    .writing-area {
+      padding: 38px clamp(28px, 6vw, 92px) 78px;
+      max-width: 900px;
+      width: 100%;
+      margin: auto
+    }
+
+    .crumb {
+      font: 10px var(--mono);
+      text-transform: uppercase;
+      color: var(--muted);
+      letter-spacing: .4px;
+      margin-bottom: 26px
+    }
+
+    .title-input {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: var(--ink);
+      font: 600 clamp(27px, 3.2vw, 38px) var(--serif);
+      padding: 0;
+      letter-spacing: 0
+    }
+
+    .subtitle-input {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #878980;
+      font: 13px var(--serif);
+      padding: 9px 0 19px
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 7px 0;
+      margin-bottom: 21px;
+      position: sticky;
+      top: 0;
+      background: var(--paper);
+      z-index: 2
+    }
+
+    .format-btn {
+      width: 31px;
+      height: 30px;
+      border-radius: 5px;
+      color: #66685f;
+      font-size: 13px
+    }
+
+    .format-btn:hover {
+      background: #e9e8e1
+    }
+
+    .format-btn b {
+      font-weight: 700
+    }
+
+    .format-sep {
+      width: 1px;
+      height: 18px;
+      background: var(--line);
+      margin: 0 5px
+    }
+
+    .word-meta {
+      margin-left: auto;
+      color: var(--muted);
+      font: 10px var(--mono)
+    }
+
+    .editor {
+      min-height: 42vh;
+      width: 100%;
+      resize: vertical;
+      border: 0;
+      background: transparent;
+      color: #383a35;
+      font: 15px/2 var(--serif);
+      padding: 0;
+      letter-spacing: .15px
+    }
+
+    .editor:focus {
+      outline: 0
+    }
+
+    .editor::placeholder {
+      color: #b0b1a8
+    }
+
+    .focus-footer {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 11px
+    }
+
+    .checkin-button {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid #bdd0bf;
+      border-radius: 6px;
+      background: #eef4ec;
+      color: var(--green);
+      padding: 8px 11px;
+      font-size: 11px
+    }
+
+    .checkin-button.checked {
+      background: var(--green);
+      color: white;
+      border-color: var(--green)
+    }
+
+    .right-panel {
+      border-left: 1px solid var(--line);
+      padding: 28px 19px;
+      background: rgba(255, 254, 250, .42)
+    }
+
+    .panel-title {
+      font: 10px var(--mono);
+      letter-spacing: .5px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin: 0 0 15px
+    }
+
+    .goal-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 15px;
+      margin-bottom: 26px
+    }
+
+    .goal-top {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px
+    }
+
+    .goal-top strong {
+      color: var(--green)
+    }
+
+    .goal-target-input {
+      width: 66px;
+      margin-left: 4px;
+      padding: 3px 4px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--paper);
+      color: var(--ink);
+      font: 600 11px var(--mono);
+      text-align: right
+    }
+
+    .progress {
+      height: 5px;
+      background: #e9e8e1;
+      border-radius: 8px;
+      margin: 12px 0 8px;
+      overflow: hidden
+    }
+
+    .progress span {
+      height: 100%;
+      display: block;
+      background: #5e956e;
+      border-radius: 8px;
+      transition: width .25s
+    }
+
+    .goal-foot {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font: 10px var(--mono)
+    }
+
+    .prompt-card {
+      min-width: 0;
+      margin-bottom: 20px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-left: 2px solid var(--orange);
+      border-radius: 6px;
+      background: var(--white)
+    }
+
+    .prompt-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 9px;
+      color: var(--ink);
+      font: 600 12px var(--serif)
+    }
+
+    .prompt-search,
+    .prompt-tags-input {
+      width: 100%;
+      min-width: 0;
+      margin-bottom: 7px;
+      padding: 7px 8px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--paper);
+      color: var(--ink);
+      font: 10px var(--sans)
+    }
+
+    .prompt-card textarea {
+      width: 100%;
+      min-height: 78px;
+      resize: vertical;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--paper);
+      color: var(--ink);
+      font: 11px/1.7 var(--serif)
+    }
+
+    .prompt-card textarea:focus,
+    .prompt-search:focus,
+    .prompt-tags-input:focus {
+      outline: 1px solid var(--green);
+      border-color: var(--green)
+    }
+
+    .prompt-save-row {
+      display: flex;
+      gap: 6px;
+      margin: 7px 0 9px
+    }
+
+    .prompt-save-row button {
+      padding: 6px 8px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--paper);
+      color: var(--ink);
+      font-size: 10px
+    }
+
+    .prompt-save-row .prompt-save-button {
+      flex: 1;
+      border-color: var(--green);
+      background: var(--green);
+      color: #fff
+    }
+
+    .prompt-tag-filters,
+    .inspiration-note-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin: 5px 0 8px
+    }
+
+    .prompt-tag {
+      padding: 3px 6px;
+      border: 1px solid #d5dfd4;
+      border-radius: 10px;
+      background: #eef4ec;
+      color: #486b50;
+      font: 9px var(--sans);
+      cursor: pointer
+    }
+
+    .prompt-tag.active {
+      border-color: var(--green);
+      background: var(--green);
+      color: #fff
+    }
+
+    .inspiration-note-list {
+      display: grid;
+      gap: 7px;
+      max-height: 320px;
+      overflow-y: auto
+    }
+
+    .inspiration-note {
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--paper)
+    }
+
+    .inspiration-note-content {
+      margin: 0;
+      color: var(--ink);
+      font: 11px/1.65 var(--serif);
+      white-space: pre-wrap;
+      overflow-wrap: anywhere
+    }
+
+    .inspiration-note-tags {
+      margin: 6px 0 0
+    }
+
+    .inspiration-note-tags .prompt-tag {
+      cursor: pointer
+    }
+
+    .inspiration-note-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 5px;
+      margin-top: 6px
+    }
+
+    .inspiration-note-actions button {
+      padding: 3px 6px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--white);
+      color: var(--muted);
+      font: 9px var(--sans)
+    }
+
+    .inspiration-note-empty,
+    .prompt-note-count {
+      color: var(--muted);
+      font: 9px var(--sans)
+    }
+
+    .prompt-note-count {
+      margin: 0
+    }
+
+    .inspiration-library-section {
+      margin-top: 26px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white)
+    }
+
+    .inspiration-library-section .prompt-card {
+      max-width: 760px;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent
+    }
+
+    .inspiration-library-section .inspiration-note-list {
+      max-height: 520px
+    }
+
+    .asset-library-tools {
+      max-width: 760px;
+      margin: 18px 0 10px
+    }
+
+    .asset-library-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin: 7px 0
+    }
+
+    .library-grid .asset-library-card {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow: hidden
+    }
+
+    .asset-library-card > img {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      background: #e6e8df
+    }
+
+    .asset-library-description {
+      margin: 0;
+      padding: 8px 8px 0;
+      color: var(--muted);
+      font: 10px/1.5 var(--sans);
+      overflow-wrap: anywhere
+    }
+
+    .asset-library-card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 7px 8px 0
+    }
+
+    .asset-library-fields {
+      display: grid;
+      gap: 6px;
+      padding: 8px
+    }
+
+    .asset-library-fields input {
+      width: 100%;
+      min-width: 0;
+      padding: 6px 7px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--paper);
+      color: var(--ink);
+      font: 10px var(--sans)
+    }
+
+    .asset-library-actions {
+      display: flex;
+      gap: 5px
+    }
+
+    .asset-library-actions button {
+      flex: 1;
+      padding: 5px 6px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--white);
+      color: var(--ink);
+      font-size: 10px
+    }
+
+    .asset-library-actions .asset-save {
+      border-color: var(--green);
+      background: var(--green);
+      color: #fff
+    }
+
+    .asset-library-empty {
+      grid-column: 1 / -1;
+      padding: 22px;
+      border: 1px dashed var(--line);
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      text-align: center
+    }
+
+    .asset-section {
+      margin-top: 25px
+    }
+
+    .quick-inspiration {
+      margin-top: 18px
+    }
+
+    .quick-inspiration textarea {
+      min-height: 84px
+    }
+
+    .quick-inspiration .prompt-heading {
+      margin-bottom: 8px
+    }
+
+    .asset-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center
+    }
+
+    .asset-head button {
+      border: 0;
+      background: transparent;
+      color: var(--green);
+      font-size: 18px
+    }
+
+    .asset-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px
+    }
+
+    .asset-thumb {
+      aspect-ratio: 1;
+      border-radius: 4px;
+      background: #e6e8df;
+      overflow: hidden;
+      position: relative
+    }
+
+    .asset-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover
+    }
+
+    .asset-thumb button {
+      position: absolute;
+      right: 2px;
+      top: 1px;
+      color: white;
+      background: #2229;
+      border: 0;
+      border-radius: 3px
+    }
+
+    .empty-assets {
+      grid-column: 1/-1;
+      color: #9a9b91;
+      font-size: 10px;
+      line-height: 1.6
+    }
+
+    .select-input {
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--white);
+      padding: 8px 10px;
+      font-size: 11px
+    }
+
+    .stage {
+      height: 350px;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      background: #546b5b;
+      isolation: isolate
+    }
+
+    .stage-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -2
+    }
+
+    .stage-fallback {
+      position: absolute;
+      inset: 0;
+      z-index: -3;
+      background: linear-gradient(180deg, #a9c0bd 0%, #e7d4ae 48%, #637c65 49%, #263f34 100%)
+    }
+
+    .stage:after {
+       content: '';
+      position: absolute;
+      inset: 45% 0 0;
+      background: linear-gradient(transparent, rgba(13, 24, 19, .55));
+      z-index: -1
+    }
+
+    .stage-cast {
+      position: absolute;
+      bottom: 0;
+      left: 4%;
+      right: 4%;
+      height: 84%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 1%;
+      pointer-events: none
+    }
+
+    .stage-role {
+      width: 24%;
+      height: 100%;
+      display: grid;
+      place-items: end center;
+      color: #253a31;
+      font: clamp(72px, 13vw, 160px) var(--serif);
+      text-shadow: 0 5px 8px #0002
+    }
+
+    .stage-role span,
+    .stage-role img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      object-position: center bottom;
+      filter: drop-shadow(0 2px 3px #fff6)
+    }
+
+    .stage-role img {
+      width: 100%;
+      height: 100%
+    }
+
+    .stage-role:has(img) span {
+      display: none
+    }
+
+    .fragment-cast {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px
+    }
+
+    .fragment-navigation {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--white)
+    }
+
+    .fragment-navigation button {
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--paper);
+      color: var(--ink);
+      cursor: pointer;
+      font: 11px var(--sans)
+    }
+
+    .fragment-navigation button:disabled {
+      opacity: .45;
+      cursor: not-allowed
+    }
+
+    .fragment-navigation span {
+      color: var(--muted);
+      font-size: 11px;
+      text-align: center
+    }
+
+    .fragment-cast-card {
+      padding: 9px 11px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--white)
+    }
+
+    .fragment-cast-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 11px
+    }
+
+    .fragment-text-pair {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 8px 0
+    }
+
+    .fragment-text-column {
+      min-width: 0
+    }
+
+    .fragment-text-label {
+      display: block;
+      color: var(--muted);
+      font-size: 11px
+    }
+
+    .fragment-dialogue,
+    .fragment-original {
+      display: block;
+      width: 100%;
+      min-height: 88px;
+      margin: 6px 0;
+      padding: 7px 9px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--paper);
+      color: var(--ink);
+      font: 12px/1.6 var(--serif);
+      resize: vertical
+    }
+
+    .fragment-original {
+      background: color-mix(in srgb, var(--paper) 78%, var(--line));
+      color: var(--muted)
+    }
+
+    .fragment-source {
+      width: 100%;
+      margin: 6px 0;
+      padding: 6px 8px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--paper);
+      color: var(--ink);
+      font: 11px var(--sans)
+    }
+
+    .fragment-source-label {
+      display: block;
+      color: var(--muted);
+      font-size: 11px
+    }
+
+    .fragment-source option {
+      color: var(--muted)
+    }
+
+    @media(max-width:620px) {
+      .fragment-text-pair {
+        grid-template-columns: 1fr
+      }
+
+      .fragment-dialogue,
+      .fragment-original {
+        min-height: 64px
+      }
+
+      .background-library-screen {
+        padding: 12px
+      }
+
+      .background-target {
+        align-items: stretch;
+        flex-direction: column
+      }
+
+      .background-target-navigation {
+        flex-wrap: wrap
+      }
+    }
+
+    .fragment-speaker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 8px 0;
+      color: var(--muted);
+      font-size: 11px
+    }
+
+    .fragment-speaker select {
+      max-width: 220px
+    }
+
+    .fragment-role-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px 12px
+    }
+
+    .fragment-role-options label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 10px
+    }
+
+    .fragment-role-options input {
+      accent-color: var(--green)
+    }
+
+    .role-profile-image {
+      display: block;
+      max-width: 100%;
+      max-height: 170px;
+      margin: 10px 0;
+      border-radius: 6px;
+      object-fit: contain
+    }
+
+    .role-library-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 12px
+    }
+
+    .stage-dialogue {
+      position: absolute;
+      bottom: 16px;
+      left: 18px;
+      right: 18px;
+      padding: 15px 17px;
+      background: rgba(27, 34, 29, .85);
+      color: white;
+      border: 1px solid #ffffff55;
+      border-radius: 6px
+    }
+
+    .stage-dialogue strong {
+      display: block;
+      font: 12px var(--serif);
+      color: #f2d5a0;
+      margin-bottom: 6px
+    }
+
+    .stage-dialogue p {
+      margin: 0;
+      font: 12px/1.7 var(--serif)
+    }
+
+    .stage-next {
+      display: block;
+      margin: 8px 0 0 auto;
+      padding: 3px 8px;
+      border: 1px solid #ffffff44;
+      border-radius: 4px;
+      background: transparent;
+      color: inherit;
+      font-size: 10px
+    }
+
+    .scene-content {
+      width: 100%;
+      min-height: 115px;
+      resize: vertical;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 12px;
+      font: 13px/1.7 var(--serif);
+      margin-top: 12px
+    }
+
+    .character-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 12px
+    }
+
+    .character-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: #fffefa;
+      padding: 5px 9px;
+      font-size: 10px
+    }
+
+    .character-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #d28c61
+    }
+
+    .page-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 24px
+    }
+
+    .page-head h1 {
+      font: 600 27px var(--serif);
+      margin: 0 0 6px
+    }
+
+    .page-head p {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 0
+    }
+
+    .page-inner {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 44px clamp(22px, 5vw, 70px)
+    }
+
+    .calendar-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 22px
+    }
+
+    .summary-cell {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--white)
+    }
+
+    .summary-cell small {
+      display: block;
+      color: var(--muted);
+      font: 10px var(--mono);
+      margin-bottom: 8px
+    }
+
+    .summary-cell strong {
+      font: 24px var(--serif);
+      color: var(--green)
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      border-left: 1px solid var(--line);
+      border-top: 1px solid var(--line);
+      background: var(--white)
+    }
+
+    .calendar>* {
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      min-height: 78px;
+      padding: 8px
+    }
+
+    .calendar .weekday {
+      min-height: auto;
+      text-align: center;
+      font: 9px var(--mono);
+      color: var(--muted);
+      background: #f6f5f0
+    }
+
+    .calendar .cal-day {
+      color: #71736a;
+      font: 10px var(--mono);
+      position: relative
+    }
+
+    .cal-day.selected {
+      background: #edf3eb
+    }
+
+    .cal-day .cal-count {
+      display: block;
+      margin-top: 12px;
+      color: var(--green);
+      font: 9px var(--mono)
+    }
+
+    .cal-day.has-entry:after {
+      content: '';
+      position: absolute;
+      right: 8px;
+      top: 8px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #6a9a72
+    }
+
+    .import-drop {
+      padding: 45px 20px;
+      border: 1px dashed #b9bbae;
+      border-radius: 8px;
+      text-align: center;
+      background: #faf9f5;
+      color: var(--muted);
+      cursor: pointer
+    }
+
+    .import-drop:hover,
+    .import-drop.drag-over {
+      border-color: var(--green);
+      background: #f2f6f0
+    }
+
+    .import-drop strong {
+      display: block;
+      color: var(--ink);
+      font: 14px var(--serif);
+      margin: 10px
+    }
+
+    .library-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(125px, 1fr));
+      gap: 12px;
+      margin-top: 22px
+    }
+
+    .library-item {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--white)
+    }
+
+    .library-item img {
+      width: 100%;
+      aspect-ratio: 1.3;
+      object-fit: cover;
+      display: block
+    }
+
+    .library-item p {
+      margin: 0;
+      padding: 8px;
+      font-size: 10px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    .export-list {
+      display: grid;
+      gap: 9px
+    }
+
+    .export-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--white)
+    }
+
+    .export-icon {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      background: var(--green-soft);
+      border-radius: 7px;
+      color: var(--green);
+      font-size: 17px
+    }
+
+    .export-row strong {
+      font: 12px var(--serif)
+    }
+
+    .export-row small {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      margin-top: 5px
+    }
+
+    .export-row .top-action {
+      margin-left: auto;
+      white-space: nowrap
+    }
+
+    .settings-block {
+      border-bottom: 1px solid var(--line);
+      padding: 20px 0
+    }
+
+    .settings-block h3 {
+      font: 13px var(--serif);
+      margin: 0 0 8px
+    }
+
+    .settings-block p {
+      font-size: 11px;
+      line-height: 1.7;
+      color: var(--muted);
+      max-width: 570px
+    }
+
+    .settings-block input {
+      width: min(100%, 460px);
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--white);
+      font: 12px var(--mono)
+    }
+
+    .setting-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px
+    }
+
+    .notice {
+      padding: 12px 14px;
+      border-radius: 6px;
+      background: #eff4ed;
+      color: #395d44;
+      font-size: 11px;
+      line-height: 1.7;
+      margin: 15px 0
+    }
+
+    .mobile-tabs {
+      display: none
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 22px;
+      left: 50%;
+      transform: translate(-50%, 15px);
+      background: #262a25;
+      color: white;
+      border-radius: 6px;
+      padding: 10px 15px;
+      font-size: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s;
+      z-index: 20
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0)
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: #20231f66;
+      display: none;
+      place-items: center;
+      z-index: 30;
+      padding: 18px
+    }
+
+    .modal-backdrop.open {
+      display: grid
+    }
+
+    .modal {
+      width: min(420px, 100%);
+      max-height: calc(100dvh - 36px);
+      overflow-y: auto;
+      background: var(--white);
+      border-radius: 9px;
+      padding: 23px;
+      box-shadow: 0 20px 60px #1113
+    }
+
+    .modal.role-library-modal {
+      width: min(560px, 100%)
+    }
+
+    .modal h2 {
+      font: 20px var(--serif);
+      margin: 0 0 9px
+    }
+
+    .modal p {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.8
+    }
+
+    .modal input,
+    .modal select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 5px
+    }
+
+    .modal textarea {
+      width: 100%;
+      min-height: 76px;
+      resize: vertical;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--paper);
+      color: var(--ink);
+      font: 12px/1.6 var(--sans)
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 18px
+    }
+
+    .delete-project-modal {
+      z-index: 31
+    }
+
+    .delete-project-name {
+      display: block;
+      margin: 10px 0;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--paper);
+      color: var(--ink);
+      font-weight: 600;
+      overflow-wrap: anywhere
+    }
+
+    .delete-warning {
+      color: #a64b3c !important
+    }
+
+    .danger-action {
+      border-color: #b65747 !important;
+      background: #b65747 !important;
+      color: #fff !important
+    }
+
+    .danger-action:hover {
+      border-color: #984333 !important;
+      background: #984333 !important
+    }
+
+    .mobile-menu-btn {
+      display: none
+    }
+
+    .mobile-project-button {
+      display: none;
+      padding: 6px 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--white);
+      font-size: 11px
+    }
+
+    .hidden {
+      display: none !important
+    }
+
+    @media(max-width:1050px) {
+      :root {
+        --side: 205px
+      }
+
+      .editor-layout {
+        grid-template-columns: minmax(0, 1fr) 235px
+      }
+
+      .writing-area {
+        padding-left: 36px;
+        padding-right: 36px
+      }
+
+      .sidebar {
+        padding-left: 14px;
+        padding-right: 14px
+      }
+    }
+
+    @media(max-width:760px) {
+      :root {
+        --rail: 0px;
+        --side: 0px
+      }
+
+      .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: 55px 1fr
+      }
+
+      .topbar {
+        grid-column: 1;
+        padding: 0 13px;
+        gap: 11px
+      }
+
+      .brand {
+        width: auto
+      }
+
+      .brand-word {
+        display: none
+      }
+
+      .project-name {
+        font-size: 12px;
+        max-width: 100px
+      }
+
+      .save-state {
+        font-size: 0;
+        gap: 0
+      }
+
+      .save-dot {
+        width: 8px;
+        height: 8px
+      }
+
+      .top-action {
+        padding: 7px 9px;
+        font-size: 10px
+      }
+
+      .topbar .top-action:not(.sync-btn) {
+        display: none
+      }
+
+      .mobile-project-button {
+        display: block
+      }
+
+      .avatar {
+        width: 26px;
+        height: 26px
+      }
+
+      .rail {
+        display: none
+      }
+
+      .sidebar {
+        display: none
+      }
+
+      .workspace {
+        grid-column: 1;
+        grid-row: 2;
+        padding-bottom: 62px
+      }
+
+      .page {
+        min-height: calc(100dvh - 117px)
+      }
+
+      .editor-layout {
+        display: flex;
+        flex-direction: column;
+        min-height: calc(100dvh - 117px)
+      }
+
+      .writing-area {
+        padding: 28px 22px 38px
+      }
+
+      .crumb {
+        margin-bottom: 18px
+      }
+
+      .title-input {
+        font-size: 27px
+      }
+
+      .editor {
+        min-height: 35vh;
+        font-size: 14px
+      }
+
+      .right-panel {
+        border: 0;
+        border-top: 1px solid var(--line);
+        padding: 20px 22px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px
+      }
+
+      .right-panel>.panel-title {
+        grid-column: 1/-1;
+        margin: 0
+      }
+
+      .goal-card {
+        margin: 0
+      }
+
+      .prompt-card {
+        align-self: stretch
+      }
+
+      .asset-section {
+        grid-column: 1/-1;
+        margin-top: 2px
+      }
+
+      .quick-inspiration {
+        grid-column: 1/-1
+      }
+
+      .mobile-tabs {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 62px;
+        padding-bottom: env(safe-area-inset-bottom);
+        background: #fffefa;
+        border-top: 1px solid var(--line);
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        overflow-x: auto;
+        z-index: 5
+      }
+
+      .mobile-tab {
+        flex: 1 0 46px;
+        border: 0;
+        background: transparent;
+        color: #777970;
+        font-size: 9px;
+        display: grid;
+        justify-items: center;
+        gap: 3px;
+        min-width: 54px
+      }
+
+      .mobile-tab.active {
+        color: var(--green);
+        font-weight: 600
+      }
+
+      .mobile-tab[data-editor-mode] {
+        flex-basis: 52px
+      }
+
+      .mobile-tab span:first-child {
+        font-size: 17px
+      }
+
+      .mobile-tab.active {
+        color: var(--green)
+      }
+
+      .mobile-menu-btn {
+        display: block
+      }
+
+      .editor-layout[data-mode="novel"] .writing-area {
+        padding-top: 23px
+      }
+
+      .stage {
+        height: clamp(230px, 55vw, 340px)
+      }
+
+      .page-inner {
+        padding: 29px 18px
+      }
+
+      .page-head h1 {
+        font-size: 23px
+      }
+
+      .calendar-summary {
+        gap: 7px
+      }
+
+      .summary-cell {
+        padding: 11px
+      }
+
+      .summary-cell strong {
+        font-size: 20px
+      }
+
+      .calendar>* {
+        min-height: 56px;
+        padding: 5px
+      }
+
+      .cal-day .cal-count {
+        margin-top: 7px;
+        font-size: 8px
+      }
+
+      .export-row {
+        gap: 9px;
+        padding: 12px
+      }
+
+      .export-row .top-action {
+        padding: 7px
+      }
+
+      .stage-dialogue {
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        padding: 11px
+      }
+
+      .stage-character {
+        height: 75%
+      }
+    }
+
+    @media(max-width:390px) {
+      .right-panel {
+        grid-template-columns: 1fr
+      }
+
+      .right-panel>.panel-title,
+      .asset-section,
+      .quick-inspiration {
+        grid-column: 1
+      }
+
+      .calendar>* {
+        min-height: 48px
+      }
+
+      .topbar {
+        gap: 8px
+      }
+    }
+  </style>
+  <style>
+    .novel-workbench {
+      display: none
+    }
+
+    .editor-layout[data-mode="novel"] .title-input,
+    .editor-layout[data-mode="novel"] .subtitle-input,
+    .editor-layout[data-mode="novel"] .toolbar,
+    .editor-layout[data-mode="novel"] #articleBody,
+    .editor-layout[data-mode="novel"] .focus-footer {
+      display: none
+    }
+
+    .editor-layout[data-mode="novel"] .novel-workbench {
+      display: block
+    }
+
+    .editor-layout[data-mode="novel"] .writing-area {
+      padding-top: 28px
+    }
+
+    .editor-layout[data-mode="roles"] .title-input,
+    .editor-layout[data-mode="roles"] .subtitle-input,
+    .editor-layout[data-mode="roles"] .toolbar,
+    .editor-layout[data-mode="roles"] #articleBody,
+    .editor-layout[data-mode="roles"] .focus-footer,
+    .editor-layout[data-mode="roles"] .novel-scene-editor {
+      display: none
+    }
+
+    .editor-layout[data-mode="roles"] .novel-workbench {
+      display: block
+    }
+
+    .editor-layout[data-mode="roles"] .writing-area {
+      padding-top: 28px
+    }
+
+    .editor-layout[data-mode="backgrounds"] .title-input,
+    .editor-layout[data-mode="backgrounds"] .subtitle-input,
+    .editor-layout[data-mode="backgrounds"] .toolbar,
+    .editor-layout[data-mode="backgrounds"] #articleBody,
+    .editor-layout[data-mode="backgrounds"] .focus-footer,
+    .editor-layout[data-mode="backgrounds"] .novel-scene-editor,
+    .editor-layout[data-mode="backgrounds"] .role-library-screen {
+      display: none
+    }
+
+    .editor-layout[data-mode="backgrounds"] .novel-workbench,
+    .editor-layout[data-mode="backgrounds"] .background-library-screen {
+      display: block
+    }
+
+    .editor-layout[data-mode="backgrounds"] .writing-area {
+      padding-top: 28px
+    }
+
+    .role-library-screen {
+      display: none;
+      margin-top: 5px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--paper)
+    }
+
+    .editor-layout[data-mode="roles"] .role-library-screen {
+      display: block
+    }
+
+    .background-library-screen {
+      display: none;
+      margin-top: 5px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--paper)
+    }
+
+    .background-library-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px
+    }
+
+    .background-library-heading h2 {
+      margin: 0;
+      color: var(--ink);
+      font: 600 17px var(--serif)
+    }
+
+    .background-library-heading p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 11px
+    }
+
+    .background-target {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--white)
+    }
+
+    .background-target-text {
+      min-width: 0;
+      color: var(--muted);
+      font-size: 11px
+    }
+
+    .background-target-text strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--ink)
+    }
+
+    .background-target-text span {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    .background-target-navigation {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 0 0 auto
+    }
+
+    .background-target-navigation button {
+      padding: 5px 8px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--paper);
+      color: var(--ink);
+      font-size: 10px
+    }
+
+    .background-target-navigation button:disabled {
+      opacity: .45;
+      cursor: not-allowed
+    }
+
+    .background-library-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px
+    }
+
+    .background-library-card {
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--white)
+    }
+
+    .background-library-card.selected {
+      border-color: var(--green);
+      box-shadow: 0 0 0 1px var(--green)
+    }
+
+    .background-library-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      background: #e6e8df
+    }
+
+    .background-library-card p {
+      overflow: hidden;
+      margin: 7px 8px;
+      color: var(--ink);
+      font-size: 10px;
+      text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    .background-library-card .background-asset-description {
+      display: -webkit-box;
+      margin-top: 0;
+      overflow: hidden;
+      white-space: normal;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2
+    }
+
+    .background-library-actions {
+      display: flex;
+      gap: 5px;
+      padding: 0 7px 7px
+    }
+
+    .background-library-actions button {
+      min-width: 0;
+      padding: 5px 7px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--paper);
+      color: var(--ink);
+      font-size: 10px
+    }
+
+    .background-library-actions .background-apply {
+      flex: 1;
+      border-color: var(--green);
+      background: var(--green);
+      color: #fff
+    }
+
+    .background-library-empty {
+      grid-column: 1 / -1;
+      padding: 20px;
+      border: 1px dashed var(--line);
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      text-align: center
+    }
+
+    .role-library-heading,
+    .role-directory-heading,
+    .role-profile-header,
+    .role-library-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px
+    }
+
+    .role-library-heading {
+      justify-content: space-between;
+      margin-bottom: 16px
+    }
+
+    .role-library-heading h2 {
+      margin: 0;
+      color: var(--ink);
+      font: 20px var(--serif)
+    }
+
+    .role-library-heading p,
+    .role-profile-section p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 11px
+    }
+
+    .role-library-layout {
+      display: grid;
+      grid-template-columns: minmax(150px, 220px) minmax(0, 1fr);
+      gap: 14px;
+      align-items: start
+    }
+
+    .role-directory,
+    .role-profile-editor {
+      min-width: 0;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--white)
+    }
+
+    .role-directory-heading {
+      justify-content: space-between;
+      margin-bottom: 9px;
+      color: var(--ink);
+      font-size: 12px
+    }
+
+    .role-directory-heading span {
+      color: var(--muted);
+      font-size: 10px
+    }
+
+    .role-directory-item {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      gap: 8px;
+      margin-top: 5px;
+      padding: 8px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--ink);
+      text-align: left;
+      cursor: pointer
+    }
+
+    .role-directory-item.active {
+      border-color: var(--line);
+      background: var(--paper);
+      color: var(--green)
+    }
+
+    .role-directory-avatar {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      flex: 0 0 30px;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 50%;
+      background: #e8e4d7;
+      color: var(--green);
+      font: 14px var(--serif)
+    }
+
+    .role-directory-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover
+    }
+
+    .role-directory-name {
+      overflow: hidden;
+      font-size: 11px;
+      text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    .role-profile-header {
+      align-items: stretch;
+      padding-bottom: 13px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .role-profile-portrait {
+      display: grid;
+      width: 112px;
+      min-height: 124px;
+      flex: 0 0 112px;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 7px;
+      background: linear-gradient(150deg, #eee9dc, #dce5dc);
+      color: var(--green);
+      font-size: 32px
+    }
+
+    .role-profile-portrait img {
+      width: 100%;
+      height: 100%;
+      max-height: 180px;
+      object-fit: contain;
+      object-position: center bottom
+    }
+
+    .role-profile-title {
+      display: grid;
+      flex: 1;
+      align-content: center;
+      gap: 10px
+    }
+
+    .role-profile-title label,
+    .role-profile-section {
+      color: var(--muted);
+      font-size: 10px
+    }
+
+    .role-profile-title input,
+    .role-profile-section textarea {
+      display: block;
+      width: 100%;
+      margin-top: 5px;
+      padding: 8px 9px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--paper);
+      color: var(--ink);
+      font: 12px/1.6 var(--sans)
+    }
+
+    .role-profile-sections {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+      margin: 12px 0
+    }
+
+    .role-profile-section {
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr);
+      gap: 4px 7px;
+      align-content: start;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--paper)
+    }
+
+    .role-profile-section:last-child {
+      grid-column: 1 / -1
+    }
+
+    .role-profile-section h3 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 11px
+    }
+
+    .role-profile-section p {
+      line-height: 1.5
+    }
+
+    .role-section-icon {
+      display: grid;
+      width: 22px;
+      height: 22px;
+      place-items: center;
+      border-radius: 50%;
+      background: #e8e4d7;
+      color: var(--green);
+      font-size: 13px
+    }
+
+    .role-profile-section textarea {
+      grid-column: 1 / -1;
+      min-height: 74px;
+      resize: vertical
+    }
+
+    .role-library-actions {
+      flex-wrap: wrap;
+      padding-top: 10px;
+      border-top: 1px solid var(--line)
+    }
+
+    @media(max-width:680px) {
+      .role-library-screen {
+        padding: 11px
+      }
+
+      .role-library-layout {
+        grid-template-columns: 1fr
+      }
+
+      .role-directory {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3px
+      }
+
+      .role-directory-heading {
+        width: 100%
+      }
+
+      .role-directory-item {
+        width: auto;
+        max-width: 48%
+      }
+
+      .role-profile-portrait {
+        width: 82px;
+        min-height: 100px;
+        flex-basis: 82px
+      }
+
+      .role-profile-sections {
+        grid-template-columns: 1fr
+      }
+
+      .role-profile-section:last-child {
+        grid-column: auto
+      }
+    }
+  </style>
+  <style>
+    .character-portrait {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center bottom;
+      filter: drop-shadow(0 7px 10px #0004)
+    }
+
+    .novel-content-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 10px 0;
+      color: var(--muted);
+      font-size: 11px
+    }
+
+    .novel-markers button {
+      padding: 5px 8px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--white);
+      color: var(--ink);
+      font-size: 10px
+    }
+  </style>
+  <style>
+    .story-views {
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid var(--line);
+      margin: 0 0 18px
+    }
+
+    .story-view {
+      border: 0;
+      border-bottom: 2px solid transparent;
+      background: transparent;
+      padding: 9px 13px;
+      color: var(--muted);
+      font-size: 11px
+    }
+
+    .story-view.active {
+      border-color: var(--green);
+      color: var(--green);
+      font-weight: 600
+    }
+
+    .story-panel {
+      display: none
+    }
+
+    .story-panel.active {
+      display: block
+    }
+
+    .timeline-list {
+      display: grid;
+      gap: 0;
+      margin: 18px 0 22px;
+      padding-left: 17px;
+      border-left: 1px solid #c9d1c5
+    }
+
+    .timeline-node {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 5px 12px;
+      padding: 0 0 16px 17px
+    }
+
+    .timeline-node:before {
+      content: '';
+      position: absolute;
+      left: -22px;
+      top: 7px;
+      width: 9px;
+      height: 9px;
+      border: 2px solid var(--green);
+      background: var(--paper);
+      border-radius: 50%
+    }
+
+    .timeline-node.active:before {
+      background: var(--green)
+    }
+
+    .timeline-node.active .timeline-select {
+      color: var(--green);
+      font-weight: 600
+    }
+
+    .timeline-select {
+      border: 0;
+      background: transparent;
+      text-align: left;
+      padding: 3px 0;
+      font: 13px var(--serif)
+    }
+
+    .timeline-date {
+      grid-column: 1;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      background: transparent;
+      padding: 4px 0;
+      color: var(--muted);
+      font: 10px var(--mono);
+      max-width: 180px
+    }
+
+    .timeline-actions {
+      grid-column: 2;
+      grid-row: 1/3;
+      display: flex;
+      align-items: center;
+      gap: 2px
+    }
+
+    .timeline-actions button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 4px
+    }
+
+    .map-tools {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 12px 0
+    }
+
+    .map-board {
+      position: relative;
+      min-height: 340px;
+      height: min(56vh, 520px);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background-color: #e9e8df;
+      background-image: linear-gradient(30deg, #d7ddcf 12%, transparent 12.5%, transparent 87%, #d7ddcf 87.5%, #d7ddcf), linear-gradient(150deg, #d7ddcf 12%, transparent 12.5%, transparent 87%, #d7ddcf 87.5%, #d7ddcf), linear-gradient(30deg, #d7ddcf 12%, transparent 12.5%, transparent 87%, #d7ddcf 87.5%, #d7ddcf), linear-gradient(150deg, #d7ddcf 12%, transparent 12.5%, transparent 87%, #d7ddcf 87.5%, #d7ddcf);
+      background-size: 46px 80px;
+      background-position: 0 0, 0 0, 23px 40px, 23px 40px
+    }
+
+    .map-board.has-background {
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat
+    }
+
+    .map-hint {
+      position: absolute;
+      left: 12px;
+      bottom: 10px;
+      padding: 5px 8px;
+      border-radius: 4px;
+      background: #fffefaD9;
+      color: #73756d;
+      font-size: 9px;
+      pointer-events: none
+    }
+
+    .map-node {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      display: grid;
+      justify-items: center;
+      gap: 4px;
+      border: 0;
+      background: transparent;
+      touch-action: none;
+      z-index: 1
+    }
+
+    .map-pin {
+      width: 25px;
+      height: 25px;
+      display: grid;
+      place-items: center;
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      background: #fffefa;
+      border: 2px solid var(--green);
+      box-shadow: 0 2px 5px #2223;
+      color: var(--green)
+    }
+
+    .map-pin span {
+      transform: rotate(45deg);
+      font-size: 10px
+    }
+
+    .map-node.active .map-pin {
+      background: var(--green);
+      color: white
+    }
+
+    .map-label {
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding: 3px 6px;
+      border-radius: 4px;
+      background: #fffefae8;
+      color: var(--ink);
+      font-size: 9px;
+      box-shadow: 0 1px 3px #2222
+    }
+
+    .map-node.active .map-label {
+      color: var(--green);
+      font-weight: 700
+    }
+
+    .map-background-input {
+      display: none
+    }
+
+    @media(max-width:760px) {
+      .map-board {
+        min-height: 300px;
+        height: 48vh
+      }
+
+      .story-view {
+        padding: 9px 10px
+      }
+
+      .timeline-node {
+        padding-bottom: 14px
+      }
+    }
+  </style>
+  <style>
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --paper: #181b19;
+      --white: #222724;
+      --ink: #e6e8e2;
+      --muted: #a0a69d;
+      --line: #383e39;
+      --green: #85bd92;
+      --green-soft: #263b2d;
+      --orange: #e88b68;
+      --blue: #8ab4ca
+    }
+
+    :root[data-theme="dark"] body {
+      background: var(--paper);
+      color: var(--ink)
+    }
+
+    :root[data-theme="dark"] .topbar {
+      background: rgba(34, 39, 36, .96);
+      border-color: var(--line)
+    }
+
+    :root[data-theme="dark"] .rail {
+      background: #202522
+    }
+
+    :root[data-theme="dark"] .sidebar,
+    :root[data-theme="dark"] .right-panel {
+      background: #1d211e;
+      border-color: var(--line)
+    }
+
+    :root[data-theme="dark"] .workspace,
+    :root[data-theme="dark"] .page {
+      background: var(--paper)
+    }
+
+    :root[data-theme="dark"] .project-switch,
+    :root[data-theme="dark"] .goal-card,
+    :root[data-theme="dark"] .summary-cell,
+    :root[data-theme="dark"] .export-row,
+    :root[data-theme="dark"] .library-item,
+    :root[data-theme="dark"] .modal {
+      background: var(--white);
+      border-color: var(--line);
+      color: var(--ink)
+    }
+
+    :root[data-theme="dark"] .top-action,
+    :root[data-theme="dark"] .select-input {
+      background: #292f2b;
+      border-color: #444c45;
+      color: var(--ink)
+    }
+
+    :root[data-theme="dark"] .sync-btn,
+    :root[data-theme="dark"] .checkin-button.checked {
+      background: #477854;
+      border-color: #477854;
+      color: #fff
+    }
+
+    :root[data-theme="dark"] .project-name,
+    :root[data-theme="dark"] input,
+    :root[data-theme="dark"] textarea,
+    :root[data-theme="dark"] select {
+      color: var(--ink)
+    }
+
+    :root[data-theme="dark"] input::placeholder,
+    :root[data-theme="dark"] textarea::placeholder {
+      color: #899188
+    }
+
+    :root[data-theme="dark"] .editor {
+      color: #e1e3dd
+    }
+
+    :root[data-theme="dark"] .subtitle-input {
+      color: #b4bab1
+    }
+
+    :root[data-theme="dark"] .scene-row.active {
+      background: #2a312c;
+      color: var(--ink)
+    }
+
+    :root[data-theme="dark"] .nav-item {
+      color: #b2b8b0
+    }
+
+    :root[data-theme="dark"] .nav-item.active {
+      background: #293b2e;
+      color: #a4d3aa
+    }
+
+    :root[data-theme="dark"] .rail-btn {
+      color: #a9b0a7
+    }
+
+    :root[data-theme="dark"] .rail-btn.active {
+      background: #293b2e;
+      color: #a4d3aa
+    }
+
+    :root[data-theme="dark"] .prompt-card {
+      background: var(--white);
+      color: var(--ink)
+    }
+
+    :root[data-theme="dark"] .prompt-card textarea {
+      background: var(--paper);
+      color: var(--ink);
+      border-color: var(--line)
+    }
+
+    :root[data-theme="dark"] .prompt-tag {
+      border-color: var(--line);
+      background: var(--green-soft);
+      color: var(--green)
+    }
+
+    :root[data-theme="dark"] .prompt-tag.active {
+      background: var(--green);
+      color: var(--paper)
+    }
+
+    :root[data-theme="dark"] .notice {
+      background: #29382d;
+      color: #c4dfc7
+    }
+
+    :root[data-theme="dark"] .import-drop {
+      background: #222824;
+      border-color: #4a554b;
+      color: #b4bbb2
+    }
+
+    :root[data-theme="dark"] .import-drop strong {
+      color: var(--ink)
+    }
+
+    :root[data-theme="dark"] .calendar {
+      background: #222724;
+      border-color: var(--line)
+    }
+
+    :root[data-theme="dark"] .calendar>* {
+      border-color: var(--line)
+    }
+
+    :root[data-theme="dark"] .calendar .weekday {
+      background: #292f2b;
+      color: #aeb5ab
+    }
+
+    :root[data-theme="dark"] .cal-day {
+      color: #c0c6bd
+    }
+
+    :root[data-theme="dark"] .cal-day.selected {
+      background: #2a3d30
+    }
+
+    :root[data-theme="dark"] .progress {
+      background: #39413b
+    }
+
+    :root[data-theme="dark"] .day {
+      background: #343a35;
+      color: #adb4aa
+    }
+
+    :root[data-theme="dark"] .day.done {
+      background: #578866;
+      color: white
+    }
+
+    :root[data-theme="dark"] .timeline-list {
+      border-color: #566257
+    }
+
+    :root[data-theme="dark"] .timeline-node:before {
+      background: var(--paper)
+    }
+
+    :root[data-theme="dark"] .timeline-node.active:before {
+      background: var(--green)
+    }
+
+    :root[data-theme="dark"] .map-board:not(.has-background) {
+      background-color: #28322c;
+      background-image: linear-gradient(30deg, #354239 12%, transparent 12.5%, transparent 87%, #354239 87.5%, #354239), linear-gradient(150deg, #354239 12%, transparent 12.5%, transparent 87%, #354239 87.5%, #354239), linear-gradient(30deg, #354239 12%, transparent 12.5%, transparent 87%, #354239 87.5%, #354239), linear-gradient(150deg, #354239 12%, transparent 12.5%, transparent 87%, #354239 87.5%, #354239)
+    }
+
+    :root[data-theme="dark"] .map-label {
+      background: #202622eF;
+      color: #edf0e9
+    }
+
+    :root[data-theme="dark"] .map-hint {
+      background: #202622eF;
+      color: #ced4ca
+    }
+
+    :root[data-theme="dark"] .mobile-tabs {
+      background: #222724;
+      border-color: var(--line)
+    }
+
+    :root[data-theme="dark"] .modal-backdrop {
+      background: #000b
+    }
+
+    :root[data-theme="dark"] .modal p {
+      color: var(--muted)
+    }
+
+    :root[data-theme="dark"] .stage-dialogue {
+      background: rgba(22, 28, 24, .92)
+    }
+
+    .theme-switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--line);
+      background: var(--white);
+      border-radius: 7px;
+      padding: 9px 12px;
+      color: var(--ink)
+    }
+
+    .theme-switch input {
+      appearance: none;
+      width: 35px;
+      height: 20px;
+      border-radius: 99px;
+      background: #c9cbc3;
+      position: relative;
+      margin: 0;
+      cursor: pointer;
+      transition: background .18s
+    }
+
+    .theme-switch input:before {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      left: 3px;
+      top: 3px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform .18s
+    }
+
+    .theme-switch input:checked {
+      background: #477854
+    }
+
+    .theme-switch input:checked:before {
+      transform: translateX(15px)
+    }
+
+    .theme-icon {
+      font-size: 15px
+    }
+
+    .theme-toggle {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--white);
+      color: var(--ink);
+      font-size: 16px;
+      display: grid;
+      place-items: center
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--green)
+    }
+  </style>
+  <style>
+    .novel-workbench {
+      display: block
+    }
+
+    .novel-scene-editor {
+      display: none
+    }
+
+    .editor-layout[data-mode="novel"] .novel-scene-editor {
+      display: block
+    }
+
+    .editor-layout[data-mode="novel"] .node-editor-head {
+      margin-bottom: 14px
+    }
+
+    .node-editor-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 15px
+    }
+
+    .node-kind {
+      font: 10px var(--mono);
+      text-transform: uppercase;
+      color: var(--green);
+      background: var(--green-soft);
+      padding: 5px 7px;
+      border-radius: 4px
+    }
+
+    .node-title-input {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      background: transparent;
+      color: var(--ink);
+      font: 500 14px var(--serif);
+      padding: 6px
+    }
+
+    .node-parent-label {
+      font-size: 10px;
+      color: var(--muted)
+    }
+
+    .scene-row-act {
+      margin-left: 15px
+    }
+
+    .scene-row-act .scene-num {
+      color: var(--green)
+    }
+
+    .map-node-act .map-pin {
+      border-radius: 6px;
+      transform: rotate(45deg);
+      background: #f7ece3;
+      border-color: var(--orange);
+      color: #9b593b
+    }
+
+    .map-node-act .map-pin span {
+      transform: rotate(-45deg)
+    }
+
+    .map-node-act.active .map-pin {
+      background: var(--orange);
+      color: white
+    }
+
+    .map-node-chapter .map-pin {
+      width: 29px;
+      height: 29px
+    }
+
+    .map-node-act .map-label {
+      border: 1px solid #d7a48c
+    }
+
+    .map-node-settings {
+      display: grid;
+      grid-template-columns: 1.3fr .8fr 1fr auto;
+      gap: 10px;
+      align-items: end;
+      margin-top: 14px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--white)
+    }
+
+    .map-node-settings label,
+    .login-field-label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 10px
+    }
+
+    .map-node-settings input,
+    .map-node-settings select,
+    .login-field-label input,
+    .login-field-label select,
+    .login-field-label textarea {
+      width: 100%;
+      min-width: 0;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--paper);
+      color: var(--ink);
+      font-size: 12px
+    }
+
+    :root[data-theme="dark"] .map-node-act .map-pin {
+      background: #392b24;
+      color: #f2a782
+    }
+
+    :root[data-theme="dark"] .map-node-act.active .map-pin {
+      background: #ae6644;
+      color: #fff
+    }
+
+    :root[data-theme="dark"] .map-node-settings {
+      background: var(--white);
+      border-color: var(--line)
+    }
+
+    @media(max-width:760px) {
+      .map-node-settings {
+        grid-template-columns: 1fr 1fr
+      }
+
+      .map-node-settings #deleteMapPoint {
+        grid-column: 1/-1
+      }
+
+      .node-editor-head {
+        flex-wrap: wrap
+      }
+
+      .node-parent-label {
+        width: 100%
+      }
+
+
+
+      .editor-layout[data-mode="novel"] .writing-area {
+        padding-top: 20px
+      }
+    }
+  </style>
+  <script>try { if (localStorage.getItem('quillframe-theme') === 'dark') document.documentElement.dataset.theme = 'dark' } catch { }</script>
+</head>
+
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">q</span><span class="brand-word">quillframe</span></div>
+      <input class="project-name" id="projectName" aria-label="專案名稱" value="雨停之前">
+      <button class="mobile-project-button" id="mobileProjectOpen" type="button">專案</button>
+      <div class="top-spacer"></div>
+      <div class="save-state"><span class="save-dot"></span><span id="saveStatus">已儲存至此裝置</span></div>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="切換黑夜模式" title="切換黑夜模式">☾</button><button
+        class="top-action" id="exportTop">匯出</button><button class="top-action sync-btn" id="projectExportTop">下載專案 ZIP</button>
+    </header>
+    <aside class="rail">
+      <button class="rail-btn active" data-page="write" title="文章">✎</button><button class="rail-btn" data-page="images"
+        title="素材庫">▧</button><button class="rail-btn" data-page="export" title="匯出作品">⇧</button>
+      <div class="rail-spacer"></div><button class="rail-btn" data-page="settings" title="設定">⚙</button>
+    </aside>
+    <aside class="sidebar">
+      <p class="side-label">目前專案</p>
+      <div class="project-switch">
+        <div class="project-cover"></div>
+        <div style="min-width:0;flex:1"><select id="projectSelect" aria-label="切換專案"></select><small id="projectCount"></small></div>
+        <div class="project-controls"><button id="addProject" type="button" title="新增專案" aria-label="新增專案">＋</button><button id="deleteProject" type="button" title="刪除目前專案" aria-label="刪除目前專案">×</button></div>
+      </div>
+      <p class="side-label">工作區</p>
+      <nav class="side-nav">
+        <button class="nav-item active" data-editor-mode="article" type="button"><span class="nav-icon">✎</span>文章</button>
+        <button class="nav-item" data-editor-mode="novel" type="button"><span class="nav-icon">▤</span>視覺小說</button>
+        <button class="nav-item" data-editor-mode="roles" type="button"><span class="nav-icon">♙</span>角色庫</button>
+        <button class="nav-item" data-editor-mode="backgrounds" type="button"><span class="nav-icon">▧</span>背景圖片庫</button>
+        <button class="nav-item" data-page="images" type="button"><span class="nav-icon">▧</span>素材庫</button>
+        <button class="nav-item" data-page="export" type="button"><span class="nav-icon">⇧</span>匯出作品</button>
+      </nav>
+      <div class="scene-head">
+        <p class="side-label">篇章與幕</p><button class="add-scene" id="addScene" title="新增篇章或幕">＋</button>
+      </div>
+      <div class="scene-list" id="sceneList"></div>
+      <div class="sidebar-bottom">
+        <div class="streak-label">寫作連續紀錄</div>
+        <div class="streak"><strong id="streakNum">0</strong><span>天持續書寫</span></div>
+        <div class="week" id="weekDots"></div>
+        <button class="streak-log-button" data-page="checkin" type="button">查看寫作日誌 →</button>
+      </div>
+    </aside>
+    <main class="workspace">
+      <section class="page active" id="page-write">
+        <div class="editor-layout" id="editorLayout" data-mode="article">
+          <div class="writing-area">
+            <div class="crumb" id="editorCrumb">雨停之前　/　第一章</div>
+            <div class="novel-workbench">
+              <h2>故事地圖</h2>
+              <div class="story-views" role="tablist" aria-label="故事編輯"><button class="story-view active"
+                  data-story-view="scene">編輯內容</button><button class="story-view" data-story-view="map">地圖結構</button>
+              </div>
+              <section class="story-panel active" id="scenePanel">
+                <div class="node-editor-head"><span class="node-kind" id="activeNodeKind">篇章</span><input
+                    class="node-title-input" id="activeNodeTitle" aria-label="目前篇章或幕名稱"><span class="node-parent-label"
+                    id="activeNodeParent"></span></div>
+                <input class="title-input" id="articleTitle" value=""
+                  aria-label="文章標題"><input class="subtitle-input" id="articleSubtitle" value="" aria-label="副標題">
+                <div class="toolbar" aria-label="文字格式工具"><button class="format-btn" data-format="bold"
+                    title="粗體"><b>B</b></button><button class="format-btn" data-format="italic"
+                    title="斜體"><i>I</i></button><button class="format-btn" data-format="underline"
+                    title="底線"><u>U</u></button><span class="format-sep"></span><button class="format-btn"
+                    data-format="h2" title="標題">H₂</button><button class="format-btn" data-format="quote"
+                    title="引用">❞</button><button class="format-btn" data-format="list" title="項目清單">☷</button><span
+                    class="format-sep"></span><select id="fontSize" class="select-input" aria-label="字級">
+                    <option value="14">小</option>
+                    <option value="16" selected>標準</option>
+                    <option value="18">大</option>
+                  </select><span class="word-meta"><span id="wordCount">0</span> 字</span></div><textarea class="editor"
+                  id="articleBody" spellcheck="false" placeholder="故事從這裡開始……"></textarea>
+                <div class="focus-footer"><button class="checkin-button" id="checkinButton">◷　完成今日寫作</button><span
+                    id="checkinHint">寫下 1 個字就能留下今天的紀錄</span></div>
+                <div class="novel-scene-editor">
+                  <div class="novel-content-actions"><span>每句自動成為小說分段，空白行保留段落；文章與小說同步，可在下方逐句指定背景。標記：<code>[[hide]]文字[[/hide]]</code> 隱藏呈現、<code>[[break]]</code> 手動斷句。</span><div class="novel-markers"><button type="button" id="hideNovelText">隱藏所選文字</button><button type="button" id="breakNovelText">插入斷句</button></div></div>
+                  <div class="stage">
+                    <div class="stage-fallback"></div><img class="stage-image hidden" id="stageImage" alt="場景背景">
+                    <div class="stage-cast" id="stageCast"></div>
+                    <div class="stage-dialogue" id="stageDialogue"><strong>悠</strong>
+                      <p></p>
+                      <button class="stage-next" id="stageNext" type="button">下一句　→</button>
+                    </div>
+                  </div><textarea class="scene-content" id="sceneContent" placeholder="寫下視覺小說場景與對白……"></textarea><div class="fragment-cast" id="fragmentCast"></div>
+                </div>
+                <section class="role-library-screen" id="roleLibraryScreen">
+                  <header class="role-library-heading">
+                    <div><h2>角色資料庫</h2><p>整理角色形象、個性與故事背景，並管理角色立繪。</p></div>
+                    <button class="top-action sync-btn" id="newRole" type="button">＋ 新增角色</button>
+                  </header>
+                  <div class="role-library-layout">
+                    <aside class="role-directory">
+                      <div class="role-directory-heading"><strong>角色名單</strong><span id="roleCount"></span></div>
+                      <div id="roleDirectoryList"></div>
+                    </aside>
+                    <div class="role-profile-editor">
+                      <div class="role-profile-header">
+                        <div class="role-profile-portrait"><img id="roleImagePreview" class="hidden" alt="角色立繪預覽"><span id="roleImagePlaceholder">✦</span></div>
+                        <div class="role-profile-title">
+                          <label>角色名稱<input id="roleNameInput" maxlength="40" placeholder="角色名稱"></label>
+                          <label>角色簡介<input id="roleSummaryInput" maxlength="120" placeholder="用一句話介紹這個角色"></label>
+                        </div>
+                      </div>
+                      <div class="role-profile-sections">
+                        <section class="role-profile-section">
+                          <span class="role-section-icon">◇</span><div><h3>外觀與設計</h3><p>整理髮型、服裝、特徵與代表色。</p></div>
+                          <textarea id="roleDesignInput" placeholder="髮型、服裝、特徵、色彩等"></textarea>
+                        </section>
+                        <section class="role-profile-section">
+                          <span class="role-section-icon">✧</span><div><h3>性格與動機</h3><p>描寫個性、目標，以及角色行動的理由。</p></div>
+                          <textarea id="rolePersonalityInput" placeholder="個性特質、目標、擔憂、行動動機等"></textarea>
+                        </section>
+                        <section class="role-profile-section">
+                          <span class="role-section-icon">▤</span><div><h3>背景與關係</h3><p>補充經歷、世界觀背景與重要人際關係。</p></div>
+                          <textarea id="roleBackgroundInput" placeholder="角色經歷、成長背景、與其他角色的關係等"></textarea>
+                        </section>
+                      </div>
+                      <div class="role-library-actions">
+                        <button class="top-action" id="renameRoleImage" type="button">▧　設定／更換立繪</button>
+                        <button class="top-action" id="removeRoleImage" type="button">移除立繪</button>
+                        <button class="top-action" id="deleteRole" type="button">刪除角色</button>
+                        <span class="top-spacer"></span>
+                        <button class="top-action sync-btn" id="saveRole" type="button">儲存角色資料</button>
+                      </div>
+                    </div>
+                  </div>
+                  <select id="roleLibrarySelect" class="hidden" aria-hidden="true" tabindex="-1"></select>
+                </section>
+                <section class="background-library-screen" id="backgroundLibraryScreen">
+                  <header class="background-library-heading">
+                    <div><h2>背景圖片庫</h2><p>管理專案圖片，並將背景直接套用到目前選取的小說句子。</p></div>
+                    <button class="top-action sync-btn" id="addBackgroundImage" type="button">＋ 新增背景圖片</button>
+                  </header>
+                  <div class="background-target">
+                    <div class="background-target-text"><strong id="backgroundTargetTitle">目前句子</strong><span id="backgroundTargetText">尚未選取句子</span></div>
+                    <div class="background-target-navigation">
+                      <button id="backgroundPrevious" type="button">← 上一句</button>
+                      <button id="clearSentenceBackground" type="button">清除此句背景</button>
+                      <button id="backgroundNext" type="button">下一句 →</button>
+                    </div>
+                  </div>
+                  <div class="background-library-grid" id="backgroundLibraryGrid"></div>
+                </section>
+              </section>
+              <section class="story-panel" id="mapPanel">
+                <p class="panel-title">篇章與幕</p>
+                <div class="map-tools"><button class="top-action" id="mapBackgroundButton">▧　設定地圖背景</button><button
+                    class="top-action" id="clearMapBackground">清除背景</button><button class="top-action sync-btn"
+                    id="addChapterNode">＋　新增篇章</button><button class="top-action" id="addActNode">＋　新增幕</button></div>
+                <div class="map-board" id="mapBoard"><span class="map-hint">先新增篇章或幕 · 點節點編輯內容 · 拖曳調整位置</span></div>
+                <div class="map-node-settings"><label>節點名稱<input id="mapPointTitle"
+                      aria-label="地圖節點名稱"></label><label>節點類型<select id="mapPointType">
+                      <option value="chapter">篇章</option>
+                      <option value="act">幕</option>
+                    </select></label><label id="mapParentWrap">所屬篇章<select id="mapPointParent"></select></label><button
+                    class="top-action" id="deleteMapPoint">刪除此節點</button></div>
+              </section>
+            </div>
+          </div>
+          <aside class="right-panel">
+            <p class="panel-title">今日寫作目標</p>
+            <div class="goal-card">
+              <div class="goal-top"><span>每日目標</span><strong><span id="goalProgress">0</span> / <input class="goal-target-input" id="dailyGoalInput" type="number" min="1" max="1000000" step="1" aria-label="每日寫作目標字數"></strong></div>
+              <div class="progress"><span id="goalBar" style="width:0"></span></div>
+              <div class="goal-foot"><span>今日已寫</span><span id="goalPercent">0%</span></div>
+            </div>
+            <div class="asset-section">
+              <div class="asset-head">
+                <p class="panel-title">本章素材</p><button id="quickUpload" title="加入圖片">＋</button>
+              </div>
+              <div class="asset-grid" id="assetGrid"></div>
+            </div>
+            <section class="quick-inspiration prompt-card" id="quickInspiration" aria-labelledby="quickInspirationHeading">
+              <div class="prompt-heading"><span id="quickInspirationHeading">✳　靈感筆記</span><span class="prompt-note-count" id="quickInspirationCount"></span></div>
+              <textarea id="quickInspirationText" aria-label="快速靈感筆記內容" placeholder="記下正在寫作時想到的點子……"></textarea>
+              <input class="prompt-tags-input" id="quickInspirationTags" aria-label="快速靈感筆記標籤" placeholder="標籤，以逗號分隔">
+              <div class="prompt-save-row">
+                <button class="prompt-save-button" id="saveQuickInspiration" type="button">儲存筆記</button>
+                <button id="openInspirationLibrary" type="button">查看全部</button>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </section>
+      <section class="page" id="page-checkin">
+        <div class="page-inner">
+          <div class="page-head">
+            <div>
+              <h1>寫作日誌</h1>
+              <p>每一段文字，都算數。</p>
+            </div><button class="checkin-button" id="logCheckin">◷　完成今日寫作</button>
+          </div>
+          <div class="calendar-summary">
+            <div class="summary-cell"><small>本月累積</small><strong id="monthWords">0</strong><small>字</small></div>
+            <div class="summary-cell"><small>本月寫作</small><strong id="monthDays">0</strong><small>天</small></div>
+            <div class="summary-cell"><small>最長連續</small><strong id="bestStreak">0</strong><small>天</small></div>
+          </div>
+          <div class="calendar" id="calendar"></div>
+        </div>
+      </section>
+      <section class="page" id="page-images">
+        <div class="page-inner">
+          <div class="page-head">
+            <div>
+              <h1>素材庫</h1>
+              <p>為故事收藏視覺線索。</p>
+            </div><button class="top-action" id="importButton">＋　匯入圖片</button>
+          </div>
+          <div class="import-drop" id="dropZone">
+            <div style="font-size:24px">▧</div><strong>把圖片拖曳到這裡，或點擊選取</strong><span>支援 PNG、JPG、GIF、WebP、SVG、AVIF、HEIC
+              等瀏覽器可讀取的圖像格式</span>
+          </div>
+          <div class="asset-library-tools">
+            <input class="prompt-search" id="assetSearch" type="search" aria-label="搜尋圖片素材" placeholder="搜尋圖片名稱、說明或標籤">
+            <div class="asset-library-tags" id="assetTagFilters"></div>
+            <span class="prompt-note-count" id="assetCount"></span>
+          </div>
+          <div class="library-grid" id="libraryGrid"></div>
+          <section class="inspiration-library-section">
+            <header class="background-library-heading">
+              <div><h2>靈感筆記</h2><p>儲存、搜尋和整理寫作靈感，並用標籤快速篩選。</p></div>
+            </header>
+            <div class="prompt-card" aria-labelledby="inspirationHeading">
+              <div class="prompt-heading"><span id="inspirationHeading">✳　我的靈感筆記</span><span class="prompt-note-count" id="inspirationCount"></span></div>
+              <input class="prompt-search" id="inspirationSearch" type="search" aria-label="搜尋靈感筆記" placeholder="搜尋筆記或標籤">
+              <textarea id="inspiration" aria-label="靈感筆記內容" placeholder="輸入一則靈感，按下儲存……"></textarea>
+              <input class="prompt-tags-input" id="inspirationTags" aria-label="靈感筆記標籤" placeholder="標籤，以逗號分隔">
+              <div class="prompt-save-row">
+                <button class="prompt-save-button" id="saveInspiration" type="button">儲存筆記</button>
+                <button class="hidden" id="cancelInspirationEdit" type="button">取消編輯</button>
+              </div>
+              <div class="prompt-tag-filters" id="inspirationTagFilters"></div>
+              <div class="inspiration-note-list" id="inspirationNoteList" aria-live="polite"></div>
+            </div>
+          </section>
+        </div>
+      </section>
+      <section class="page" id="page-export">
+        <div class="page-inner">
+          <div class="page-head">
+            <div>
+              <h1>匯出作品</h1>
+              <p>帶著故事離線出發。</p>
+            </div>
+          </div>
+          <div class="notice">專案會自動儲存在此裝置。要在另一部裝置繼續編輯，請下載完整 ZIP 專案並在新裝置匯入；ZIP 內含文章、篇章、獨立圖片檔與寫作紀錄，不需雲端服務。也支援匯入舊版 JSON 專案檔。</div>
+          <div class="export-list">
+            <div class="export-row">
+              <div class="export-icon">¶</div>
+              <div><strong>文章 Markdown</strong><small>適合備份、發佈與後續編輯</small></div><button class="top-action"
+                data-export="markdown">下載 .md</button>
+            </div>
+            <div class="export-row">
+              <div class="export-icon">⌘</div>
+              <div><strong>文章網頁</strong><small>獨立 HTML 文件，可離線閱讀</small></div><button class="top-action"
+                data-export="articleHtml">下載 .html</button>
+            </div>
+            <div class="export-row">
+              <div class="export-icon">▧</div>
+              <div><strong>視覺小說</strong><small>內含章節、對白與圖片的離線遊玩檔</small></div><button class="top-action"
+                data-export="novelHtml">下載 .html</button>
+            </div>
+            <div class="export-row">
+              <div class="export-icon">⇩</div>
+              <div><strong>完整專案 ZIP</strong><small>包含文章、篇章、圖片原始檔與寫作紀錄，可在另一裝置匯入</small></div><button class="top-action"
+                data-export="zip">下載 .zip</button>
+            </div>
+            <div class="export-row">
+              <div class="export-icon">↥</div>
+              <div><strong>在此裝置繼續編輯</strong><small>匯入 Quillframe ZIP 或舊版 JSON 專案檔，載入後會取代目前專案</small><button class="top-action"
+                  id="importProject" style="display:block;margin:9px 0 0">匯入 ZIP／JSON 專案檔</button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="page" id="page-settings">
+        <div class="page-inner">
+          <div class="page-head">
+            <div>
+              <h1>設定</h1>
+              <p>你的寫作，應該由你掌握。</p>
+            </div>
+          </div>
+          <div class="settings-block">
+            <h3>本機儲存</h3>
+            <p>所有專案都會分別自動儲存在目前瀏覽器。跨裝置移轉請使用「匯出作品」中的完整 ZIP 專案，並在另一裝置匯入。</p><button class="top-action"
+              id="clearLocal">清除本機專案資料</button>
+          </div>
+          <div class="settings-block">
+            <h3>每日寫作目標</h3>
+            <p>目前目標為 500 字；每日完成寫作後會記錄日期與當日字數。</p>
+          </div>
+        </div>
+      </section>
+    </main>
+    <nav class="mobile-tabs" aria-label="工作區">
+      <button class="mobile-tab active" data-editor-mode="article" type="button"><span>✎</span><span>文章</span></button>
+      <button class="mobile-tab" data-editor-mode="novel" type="button"><span>▤</span><span>小說</span></button>
+      <button class="mobile-tab" data-editor-mode="roles" type="button"><span>♙</span><span>角色</span></button>
+      <button class="mobile-tab" data-editor-mode="backgrounds" type="button"><span>▧</span><span>背景</span></button>
+      <button class="mobile-tab" data-page="checkin" type="button"><span>▦</span><span>日誌</span></button>
+      <button class="mobile-tab" data-page="images" type="button"><span>▧</span><span>素材</span></button>
+      <button class="mobile-tab" data-page="export" type="button"><span>⇧</span><span>匯出</span></button>
+      <button class="mobile-tab" data-page="settings" type="button"><span>⚙</span><span>設定</span></button>
+    </nav>
+    <input id="imageInput" type="file" accept="image/*" multiple hidden><input id="roleImageInput" type="file"
+      accept="image/*" hidden><input id="mapBackgroundInput" type="file" accept="image/*" hidden><input
+      id="projectInput" type="file" accept=".zip,application/zip,application/x-zip-compressed,.json,application/json" hidden>
+    <div class="toast" id="toast"></div>
+    <div class="modal-backdrop" id="projectModal">
+      <div class="modal">
+        <h2>管理專案</h2>
+        <p>每個專案都會分別自動儲存在此裝置。</p>
+        <label class="login-field-label">切換專案<select id="projectSelectMobile"></select></label>
+        <div class="modal-actions"><button class="top-action" id="mobileDeleteProject" type="button">刪除專案</button><button class="top-action" id="mobileCancelProject" type="button">關閉</button><button class="top-action sync-btn" id="mobileAddProject" type="button">新增專案</button></div>
+      </div>
+    </div>
+    <div class="modal-backdrop delete-project-modal" id="deleteProjectModal">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="deleteProjectTitle" aria-describedby="deleteProjectDescription">
+        <h2 id="deleteProjectTitle">確認刪除專案？</h2>
+        <p id="deleteProjectDescription">即將永久刪除以下專案及其本機內容：</p>
+        <strong class="delete-project-name" id="deleteProjectName"></strong>
+        <p class="delete-warning">此操作無法復原。若要保留內容，請先下載完整專案 ZIP 備份。</p>
+        <div class="modal-actions">
+          <button class="top-action" id="cancelDeleteProject" type="button">取消</button>
+          <button class="top-action danger-action" id="confirmDeleteProject" type="button">刪除專案</button>
+        </div>
+      </section>
+    </div>
+    <div class="modal-backdrop" id="sceneModal">
+      <div class="modal">
+        <h2 id="sceneModalTitle">新增地圖節點</h2>
+        <p>建立篇章，或將新的一幕放進既有篇章。</p><label class="login-field-label">節點名稱<input id="newSceneTitle"
+            placeholder="例如：雨停之後"></label><label class="login-field-label">節點類型<select id="newSceneType">
+            <option value="chapter">篇章</option>
+            <option value="act">幕</option>
+          </select></label><label class="login-field-label" id="newSceneParentWrap">所屬篇章<select
+            id="newSceneParent"></select></label>
+        <div class="modal-actions"><button class="top-action" id="cancelScene">取消</button><button
+            class="top-action sync-btn" id="confirmScene">建立節點</button></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const STORAGE_KEY = 'quillframe-project-v1';
+      const PROJECTS_KEY = 'quillframe-projects-v1';
+      const sample = { name: '雨停之前', title: '雨落在沒有人的月台', subtitle: '第一章．潮汐的方向', body: '雨是從傍晚開始下的。\n\n我在月台等了很久，久到廣播裡的列車時刻變得像一首陌生的歌。月台另一端的自動販賣機亮著，藍白色的光映在水窪裡，像一小塊被遺忘的天空。\n\n「你也在等雨停嗎？」\n\n回頭時，少女站在雨線之外，手裡握著一把沒有打開的傘。她的制服袖口沾著水珠，胸前的名牌空白一片。\n\n我想起小時候母親說過，每一場雨都會替某個人保守一個秘密。那時我不相信。現在我仍然不相信，只是忽然不知道該怎麼回答她。\n\n「我在等一班不會來的車。」我說。\n\n她笑了，月台的燈也在這時一盞一盞亮起。', scenes: [{ id: 's1', title: '第一章｜潮汐的方向', text: '雨是從傍晚開始下的。我在月台等了很久，久到廣播裡的列車時刻變得像一首陌生的歌。\n\n「你也在等雨停嗎？」\n\n少女站在雨線之外，手裡握著一把沒有打開的傘。她的制服袖口沾著水珠，胸前的名牌空白一片。\n\n我想起小時候母親說過，每一場雨都會替某個人保守一個秘密。那時我不相信。現在我仍然不相信，只是忽然不知道該怎麼回答她。\n\n「我在等一班不會來的車。」我說。\n\n她笑了，月台的燈也在這時一盞一盞亮起。', character: '悠', background: '' }, { id: 's2', title: '第二章｜未寄出的信', text: '她把一封折得整整齊齊的信遞給我。信封上沒有地址，只有一個被雨暈開的日期。\n\n「如果你能回到那一天，會想對誰說什麼？」', character: '夏', background: '' }, { id: 's3', title: '終章｜海的另一邊', text: '雨停了。遠處的海面映出第一道晨光，我們都沒有再問那班列車會不會來。', character: '悠', background: '' }], assets: [], logs: {}, activeScene: 's1' };
+      const $ = selector => document.querySelector(selector), $$ = selector => [...document.querySelectorAll(selector)]; function applyTheme(theme) { const dark = theme === 'dark'; document.documentElement.dataset.theme = dark ? 'dark' : 'light'; $('#themeToggle').textContent = dark ? '☀' : '☾'; $('#themeToggle').setAttribute('aria-label', dark ? '切換日間模式' : '切換黑夜模式'); $('#themeToggle').title = dark ? '切換日間模式' : '切換黑夜模式'; document.querySelector('meta[name="theme-color"]').content = dark ? '#181b19' : '#f4f3ee'; try { localStorage.setItem('quillframe-theme', dark ? 'dark' : 'light') } catch { } }
+      function projectId() { return crypto.randomUUID() }
+      function loadLibrary() {
+        try {
+          const stored = JSON.parse(localStorage.getItem(PROJECTS_KEY) || 'null');
+          if (stored && Array.isArray(stored.projects) && stored.projects.length && stored.projects.every(project => project && typeof project.id === 'string' && project.data && Array.isArray(project.data.scenes))) {
+            const activeId = stored.projects.some(project => project.id === stored.activeId) ? stored.activeId : stored.projects[0].id;
+            return { activeId, projects: stored.projects };
+          }
+          const legacy = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+          const data = legacy && Array.isArray(legacy.scenes) ? legacy : structuredClone(sample);
+          const id = projectId();
+          return { activeId: id, projects: [{ id, data }] };
+        } catch {
+          const id = projectId();
+          return { activeId: id, projects: [{ id, data: structuredClone(sample) }] };
+        }
+      }
+      let library = loadLibrary(), projects = library.projects, activeProjectId = library.activeId;
+      let state = structuredClone(projects.find(project => project.id === activeProjectId).data), activePage = 'write', saveTimer, stageLineIndex = 0;
+      if (!Number.isInteger(state.dailyGoal) || state.dailyGoal < 1 || state.dailyGoal > 1000000) state.dailyGoal = 500;
+      delete state.google; try { localStorage.removeItem('quillframe-auth-session') } catch { }
+      let inspirationEditingId = null, inspirationEditingProjectId = activeProjectId, inspirationTagFilter = '', assetTagFilter = '';
+      state.characters = state.characters || {};
+      ['悠', '夏', '旁白'].forEach(name => { state.characters[name] = { name, design: '', background: '', ...(state.characters[name] || {}) } });
+      state.map = state.map || { background: '', backgroundName: '' };
+      let roleLibrarySelected = '悠', pendingImageRole = '';
+      state.scenes.forEach((scene, index) => { scene.kind = scene.kind || 'chapter'; scene.parentId = scene.parentId || ''; scene.articleTitle = scene.articleTitle ?? (index === 0 ? state.title : scene.title); scene.articleSubtitle = scene.articleSubtitle ?? (index === 0 ? state.subtitle : ''); scene.articleBody = scene.articleBody ?? (index === 0 ? state.body : (scene.text || '')); if (!Number.isFinite(scene.mapX)) scene.mapX = 18 + (index * 21) % 65; if (!Number.isFinite(scene.mapY)) scene.mapY = 25 + (index * 27) % 55 });
+      function saveLibraryNow() {
+        const active = projects.find(project => project.id === activeProjectId);
+        if (!active) throw new Error('目前專案不存在');
+        active.data = state;
+        active.name = state.name;
+        localStorage.setItem(PROJECTS_KEY, JSON.stringify({ activeId: activeProjectId, projects }));
+        localStorage.removeItem(STORAGE_KEY);
+      }
+      function persist() { clearTimeout(saveTimer); $('#saveStatus').textContent = '儲存中…'; saveTimer = setTimeout(() => { try { saveLibraryNow(); $('#saveStatus').textContent = '已儲存至此裝置'; renderStats() } catch { $('#saveStatus').textContent = '儲存空間不足'; toast('瀏覽器儲存空間不足，請匯出備份或移除大型圖片。') } }, 220) }
+      function toast(message) { const element = $('#toast'); element.textContent = message; element.classList.add('show'); clearTimeout(toast.timer); toast.timer = setTimeout(() => element.classList.remove('show'), 2600) }
+      function words(text) { const value = text.trim(); if (!value) return 0; const chinese = (value.match(/[\u3400-\u9fff\uf900-\ufaff]/g) || []).length; const latin = (value.match(/[A-Za-z0-9]+(?:['’-][A-Za-z0-9]+)*/g) || []).length; return chinese + latin }
+      function localDay(date = new Date()) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` }
+      function currentScene() { return state.scenes.find(scene => scene.id === state.activeScene) || state.scenes[0] }
+      function parseNovelText(text) {
+        const articleText = text.replace(/\[\[hide\]\]([\s\S]*?)\[\[\/hide\]\]/g, '$1').replace(/\[\[break\]\]/g, '');
+        const visibleText = text.replace(/\[\[hide\]\]([\s\S]*?)\[\[\/hide\]\]/g, '');
+        const dialogueSteps = visibleText.split(/\n\s*\n/).flatMap(paragraph => paragraph.split('[[break]]').flatMap(segment => (segment.match(/[^。！？!?]+[。！？!?]+[」』”’"）)]*|[^。！？!?]+$/g) || []).map(step => step.trim()).filter(Boolean)));
+        return { articleText, dialogueSteps };
+      }
+      function characterNames() { return Object.keys(state.characters).sort((a, b) => a.localeCompare(b, 'zh-Hant')) }
+      function roleEntry(name) {
+        const current = state.characters[name];
+        if (typeof current === 'string') state.characters[name] = { name, data: current, summary: '', design: '', personality: '', background: '' };
+        else state.characters[name] = { name, summary: '', design: '', personality: '', background: '', ...(current || {}) };
+        return state.characters[name];
+      }
+      function renderRoleLibrary() {
+        const select = $('#roleLibrarySelect'), directory = $('#roleDirectoryList'), names = characterNames();
+        select.replaceChildren();
+        directory.replaceChildren();
+        names.forEach(name => {
+          const option = document.createElement('option');
+          option.value = name;
+          option.textContent = name;
+          select.append(option);
+          const item = document.createElement('button');
+          item.type = 'button';
+          item.className = `role-directory-item${name === roleLibrarySelected ? ' active' : ''}`;
+          item.setAttribute('aria-pressed', String(name === roleLibrarySelected));
+          const avatar = document.createElement('span');
+          avatar.className = 'role-directory-avatar';
+          const role = roleEntry(name);
+          if (role.data) {
+            const image = document.createElement('img');
+            image.src = role.data;
+            image.alt = '';
+            avatar.append(image);
+          } else avatar.textContent = name === '旁白' ? '✦' : name.slice(0, 1);
+          const label = document.createElement('span');
+          label.className = 'role-directory-name';
+          label.textContent = name;
+          item.append(avatar, label);
+          item.addEventListener('click', () => {
+            select.value = name;
+            select.dispatchEvent(new Event('change'));
+          });
+          directory.append(item);
+        });
+        $('#roleCount').textContent = `${names.length} 位`;
+        if (!state.characters[roleLibrarySelected]) roleLibrarySelected = characterNames()[0] || '';
+        select.value = roleLibrarySelected;
+        const role = roleEntry(roleLibrarySelected);
+        $('#roleNameInput').value = roleLibrarySelected;
+        $('#roleSummaryInput').value = role.summary || '';
+        $('#roleDesignInput').value = role.design || '';
+        $('#rolePersonalityInput').value = role.personality || '';
+        $('#roleBackgroundInput').value = role.background || '';
+        const preview = $('#roleImagePreview');
+        const placeholder = $('#roleImagePlaceholder');
+        if (role.data) { preview.src = role.data; preview.classList.remove('hidden'); placeholder.classList.add('hidden') }
+        else { preview.removeAttribute('src'); preview.classList.add('hidden'); placeholder.classList.remove('hidden') }
+      }
+      function updateRoleProfile() {
+        const role = roleEntry(roleLibrarySelected);
+        role.summary = $('#roleSummaryInput').value;
+        role.design = $('#roleDesignInput').value;
+        role.personality = $('#rolePersonalityInput').value;
+        role.background = $('#roleBackgroundInput').value;
+        persist();
+      }
+      function renameRole() {
+        const oldName = roleLibrarySelected, newName = $('#roleNameInput').value.trim();
+        if (!newName) return toast('請輸入角色名稱。');
+        if (newName !== oldName && state.characters[newName]) return toast('已有同名角色，請選擇其他名稱。');
+        const role = roleEntry(oldName);
+        role.name = newName;
+        role.summary = $('#roleSummaryInput').value;
+        role.design = $('#roleDesignInput').value;
+        role.personality = $('#rolePersonalityInput').value;
+        role.background = $('#roleBackgroundInput').value;
+        if (newName !== oldName) {
+          delete state.characters[oldName];
+          state.characters[newName] = role;
+          state.scenes.forEach(scene => {
+            if (scene.character === oldName) scene.character = newName;
+            if (Array.isArray(scene.cast)) scene.cast = scene.cast.map(names => names.map(name => name === oldName ? newName : name));
+            if (Array.isArray(scene.fragments)) scene.fragments.forEach(fragment => {
+              if (fragment.speaker === oldName) fragment.speaker = newName;
+              if (Array.isArray(fragment.cast)) fragment.cast = fragment.cast.map(name => name === oldName ? newName : name);
+            });
+          });
+          roleLibrarySelected = newName;
+        }
+        renderRoleLibrary();
+        updateNovel();
+        persist();
+        toast('角色資料已儲存。');
+      }
+      function createRole() {
+        let index = 1, name = `新角色 ${index}`;
+        while (state.characters[name]) name = `新角色 ${++index}`;
+        state.characters[name] = { name, summary: '', design: '', personality: '', background: '' };
+        roleLibrarySelected = name;
+        renderRoleLibrary();
+        updateNovel();
+        persist();
+        $('#roleNameInput').focus();
+        $('#roleNameInput').select();
+      }
+      function deleteRole() {
+        const name = roleLibrarySelected;
+        if (characterNames().length < 2) return toast('至少保留一個角色。');
+        if (!window.confirm(`確定刪除角色「${name}」？相關分段的出場設定也會移除。`)) return;
+        delete state.characters[name];
+        state.scenes.forEach(scene => {
+          if (scene.character === name) scene.character = characterNames()[0];
+          if (Array.isArray(scene.cast)) scene.cast = scene.cast.map(names => names.filter(item => item !== name));
+          if (Array.isArray(scene.fragments)) scene.fragments.forEach(fragment => {
+            if (fragment.speaker === name) fragment.speaker = characterNames()[0];
+            if (Array.isArray(fragment.cast)) fragment.cast = fragment.cast.filter(item => item !== name);
+          });
+        });
+        roleLibrarySelected = characterNames()[0];
+        renderRoleLibrary();
+        updateNovel();
+        persist();
+        toast('角色已刪除。');
+      }
+      function ensureSceneBackgroundAsset(scene) {
+        if (!scene.background) return null;
+        let index = state.assets.findIndex(asset => asset?.data === scene.background);
+        if (index < 0) {
+          index = state.assets.length;
+          state.assets.push({
+            name: scene.backgroundName || `${scene.title || '場景'}背景`,
+            type: scene.background.match(/^data:([^;]+)/)?.[1] || 'image/png',
+            data: scene.background
+          });
+          renderAssets();
+        }
+        return index;
+      }
+      function sceneFragments(scene) {
+        const steps = parseNovelText(scene.text || '').dialogueSteps;
+        const previous = Array.isArray(scene.fragments) ? scene.fragments : [];
+        const legacyBackgroundIndex = steps.length ? ensureSceneBackgroundAsset(scene) : null;
+        if (previous.length === steps.length && steps.every((sourceText, index) => previous[index]?.sourceText === sourceText)) {
+          previous.forEach(fragment => {
+            if (typeof fragment.text !== 'string') fragment.text = fragment.sourceText;
+            if (!steps.includes(fragment.sourceSentence)) fragment.sourceSentence = fragment.sourceText;
+            if (typeof fragment.speaker !== 'string' || !state.characters[fragment.speaker]) fragment.speaker = scene.character || '旁白';
+            if (!Number.isInteger(fragment.backgroundAssetIndex)) fragment.backgroundAssetIndex = legacyBackgroundIndex;
+            if (fragment.backgroundAssetIndex !== null && !state.assets[fragment.backgroundAssetIndex]) fragment.backgroundAssetIndex = null;
+            fragment.cast = Array.isArray(fragment.cast)
+              ? [...new Set(fragment.cast.filter(name => typeof name === 'string' && state.characters[name]))].slice(0, 4)
+              : [];
+          });
+          delete scene.background;
+          delete scene.backgroundName;
+          scene.fragments = previous;
+          return previous;
+        }
+        const used = new Set();
+        const previousIndexes = steps.map(sourceText => {
+          const match = previous.findIndex((fragment, index) => !used.has(index) && fragment?.sourceText === sourceText);
+          if (match < 0) return -1;
+          used.add(match);
+          return match;
+        });
+        previousIndexes.forEach((previousIndex, index) => {
+          if (previousIndex >= 0 || !previous[index] || used.has(index)) return;
+          previousIndexes[index] = index;
+          used.add(index);
+        });
+        scene.fragments = steps.map((sourceText, index) => {
+          const saved = previous[previousIndexes[index]];
+          const legacyCast = Array.isArray(scene.cast?.[index]) ? scene.cast[index] : null;
+          return {
+            sourceText,
+            sourceSentence: typeof saved?.sourceSentence === 'string' && steps.includes(saved.sourceSentence) ? saved.sourceSentence : sourceText,
+            text: typeof saved?.text === 'string' ? saved.text : sourceText,
+            speaker: typeof saved?.speaker === 'string' && state.characters[saved.speaker] ? saved.speaker : (scene.character || '旁白'),
+            backgroundAssetIndex: Number.isInteger(saved?.backgroundAssetIndex) && state.assets[saved.backgroundAssetIndex]
+              ? saved.backgroundAssetIndex
+              : legacyBackgroundIndex,
+            cast: Array.isArray(saved?.cast)
+              ? [...new Set(saved.cast.filter(name => typeof name === 'string' && state.characters[name]))].slice(0, 4)
+              : legacyCast
+                ? [...new Set(legacyCast.filter(name => state.characters[name]))].slice(0, 4)
+                : (scene.character && state.characters[scene.character] ? [scene.character] : [])
+          };
+        });
+        delete scene.background;
+        delete scene.backgroundName;
+        return scene.fragments;
+      }
+      function updateRoleCast(scene) {
+        const container = $('#fragmentCast'), fragments = sceneFragments(scene), names = characterNames();
+        container.replaceChildren();
+        if (!fragments.length) return;
+        stageLineIndex = Math.min(stageLineIndex, fragments.length - 1);
+        const index = stageLineIndex, fragment = fragments[index];
+        const navigation = document.createElement('div');
+        navigation.className = 'fragment-navigation';
+        const previous = document.createElement('button');
+        previous.type = 'button';
+        previous.textContent = '← 上一句';
+        previous.disabled = index === 0;
+        previous.setAttribute('aria-label', '編輯上一句');
+        previous.addEventListener('click', () => {
+          if (stageLineIndex === 0) return;
+          stageLineIndex--;
+          renderStageDialogue(scene);
+          updateRoleCast(scene);
+        });
+        const position = document.createElement('span');
+        position.textContent = `第 ${index + 1} 句／共 ${fragments.length} 句`;
+        const next = document.createElement('button');
+        next.type = 'button';
+        next.textContent = '下一句 →';
+        next.disabled = index >= fragments.length - 1;
+        next.setAttribute('aria-label', '編輯下一句');
+        next.addEventListener('click', () => {
+          if (stageLineIndex >= fragments.length - 1) return;
+          stageLineIndex++;
+          renderStageDialogue(scene);
+          updateRoleCast(scene);
+        });
+        navigation.append(previous, position, next);
+        container.append(navigation);
+        {
+          const card = document.createElement('div');
+          card.className = 'fragment-cast-card';
+          const title = document.createElement('strong');
+          title.textContent = `第 ${index + 1} 句`;
+          const textPair = document.createElement('div');
+          textPair.className = 'fragment-text-pair';
+          const sourceColumn = document.createElement('div');
+          sourceColumn.className = 'fragment-text-column';
+          const sourceLabel = document.createElement('label');
+          sourceLabel.className = 'fragment-text-label';
+          sourceLabel.textContent = '對應正文句（自動同步）';
+          const source = document.createElement('select');
+          source.className = 'fragment-source';
+          parseNovelText(scene.text || '').dialogueSteps.forEach((sentence, sentenceIndex) => {
+            const option = document.createElement('option');
+            option.value = sentence;
+            option.textContent = `第 ${sentenceIndex + 1} 句｜${sentence.length > 50 ? `${sentence.slice(0, 50)}…` : sentence}`;
+            source.append(option);
+          });
+          source.value = fragment.sourceSentence;
+          source.setAttribute('aria-label', `選擇第 ${index + 1} 句對應的正文句`);
+          source.addEventListener('change', () => {
+            fragment.sourceSentence = source.value;
+            fragment.text = source.value;
+            original.value = source.value;
+            dialogue.value = fragment.text;
+            renderStageDialogue(scene);
+            persist();
+          });
+          sourceLabel.append(source);
+          const original = document.createElement('textarea');
+          original.className = 'fragment-original';
+          original.value = fragment.sourceSentence;
+          original.readOnly = true;
+          original.setAttribute('aria-label', `第 ${index + 1} 句同步正文原文`);
+          sourceColumn.append(sourceLabel, original);
+          const dialogueColumn = document.createElement('div');
+          dialogueColumn.className = 'fragment-text-column';
+          const dialogueLabel = document.createElement('label');
+          dialogueLabel.className = 'fragment-text-label';
+          dialogueLabel.textContent = '小說顯示內容（可編輯）';
+          const dialogue = document.createElement('textarea');
+          dialogue.className = 'fragment-dialogue';
+          dialogue.value = fragment.text;
+          dialogue.setAttribute('aria-label', `編輯第 ${index + 1} 句小說內容`);
+          dialogue.addEventListener('input', () => {
+            fragment.text = dialogue.value;
+            renderStageDialogue(scene);
+            persist();
+          });
+          dialogueLabel.append(dialogue);
+          dialogueColumn.append(dialogueLabel);
+          textPair.append(sourceColumn, dialogueColumn);
+          const backgroundLabel = document.createElement('label');
+          backgroundLabel.className = 'fragment-speaker';
+          backgroundLabel.append(document.createTextNode('此句背景'));
+          const backgroundSelect = document.createElement('select');
+          backgroundSelect.className = 'select-input fragment-background';
+          backgroundSelect.setAttribute('aria-label', `設定第 ${index + 1} 句背景`);
+          const noBackground = document.createElement('option');
+          noBackground.value = '';
+          noBackground.textContent = '不設定背景';
+          backgroundSelect.append(noBackground);
+          state.assets.forEach((asset, assetIndex) => {
+            if (!asset?.data) return;
+            const option = document.createElement('option');
+            option.value = String(assetIndex);
+            const tags = Array.isArray(asset.tags) && asset.tags.length ? ` · ${asset.tags.map(tag => `#${tag}`).join(' ')}` : '';
+            option.textContent = `${asset.name || `圖片素材 ${assetIndex + 1}`}${tags}`;
+            backgroundSelect.append(option);
+          });
+          if (Number.isInteger(fragment.backgroundAssetIndex) && state.assets[fragment.backgroundAssetIndex]?.data) {
+            backgroundSelect.value = String(fragment.backgroundAssetIndex);
+          }
+          backgroundSelect.addEventListener('change', () => {
+            fragment.backgroundAssetIndex = backgroundSelect.value === '' ? null : Number(backgroundSelect.value);
+            renderStageDialogue(scene);
+            persist();
+          });
+          const backgroundUpload = document.createElement('button');
+          backgroundUpload.type = 'button';
+          backgroundUpload.className = 'top-action fragment-background-upload';
+          backgroundUpload.textContent = '上傳圖片';
+          const backgroundFile = document.createElement('input');
+          backgroundFile.type = 'file';
+          backgroundFile.accept = 'image/*';
+          backgroundFile.className = 'hidden';
+          backgroundUpload.addEventListener('click', () => backgroundFile.click());
+          backgroundFile.addEventListener('change', () => {
+            const [file] = backgroundFile.files || [];
+            backgroundFile.value = '';
+            if (!file) return;
+            if (!file.type.startsWith('image/')) return toast('請選擇圖片檔案。');
+            const reader = new FileReader();
+            reader.onload = () => {
+              const asset = { name: file.name, description: '', tags: [], type: file.type, data: reader.result };
+              state.assets.push(asset);
+              fragment.backgroundAssetIndex = state.assets.length - 1;
+              renderAssets();
+              renderStageDialogue(scene);
+              updateRoleCast(scene);
+              persist();
+            };
+            reader.onerror = () => toast(`無法讀取 ${file.name}`);
+            reader.readAsDataURL(file);
+          });
+          backgroundLabel.append(backgroundSelect, backgroundUpload, backgroundFile);
+          const speakerLabel = document.createElement('label');
+          speakerLabel.className = 'fragment-speaker';
+          speakerLabel.append(document.createTextNode('說話角色'));
+          const speaker = document.createElement('select');
+          speaker.className = 'select-input';
+          names.forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            speaker.append(option);
+          });
+          speaker.value = fragment.speaker;
+          speaker.setAttribute('aria-label', `第 ${index + 1} 句的說話角色`);
+          speaker.addEventListener('change', () => {
+            fragment.speaker = speaker.value;
+            renderStageDialogue(scene);
+            persist();
+          });
+          speakerLabel.append(speaker);
+          const castLabel = document.createElement('strong');
+          castLabel.textContent = '畫面出場角色（最多四位）';
+          const options = document.createElement('div');
+          options.className = 'fragment-role-options';
+          names.forEach(name => {
+            const label = document.createElement('label');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = name;
+            checkbox.checked = fragment.cast.includes(name);
+            checkbox.setAttribute('aria-label', `第 ${index + 1} 段：${name}`);
+            checkbox.addEventListener('change', () => {
+              if (checkbox.checked && fragment.cast.length >= 4) {
+                checkbox.checked = false;
+                return toast('每個分段最多設定四名出場角色。');
+              }
+              fragment.cast = checkbox.checked ? [...fragment.cast, name] : fragment.cast.filter(item => item !== name);
+              renderStageDialogue(scene);
+              persist();
+            });
+            label.append(checkbox, document.createTextNode(name));
+            options.append(label);
+          });
+          card.append(title, textPair, backgroundLabel, speakerLabel, castLabel, options);
+          container.append(card);
+        }
+      }
+      function renderProjects() {
+        const selects = [$('#projectSelect'), $('#projectSelectMobile')];
+        selects.forEach(select => {
+          select.replaceChildren();
+          projects.forEach(project => {
+            const option = document.createElement('option');
+            option.value = project.id;
+            option.textContent = project.id === activeProjectId ? (state.name || '未命名專案') : (project.data.name || project.name || '未命名專案');
+            select.append(option);
+          });
+          select.value = activeProjectId;
+        });
+        $('#projectCount').textContent = `${projects.length} 個專案`;
+        $('#deleteProject').disabled = projects.length < 2;
+        $('#mobileDeleteProject').disabled = projects.length < 2;
+        $('#deleteProject').title = projects.length < 2 ? '至少保留一個專案' : '刪除目前專案';
+      }
+      function makeBlankProject() {
+        const id = projectId(), sceneId = projectId();
+        let nameIndex = projects.length + 1;
+        while (projects.some(project => project.data.name === `新專案 ${nameIndex}`)) nameIndex++;
+        return { id, data: { name: `新專案 ${nameIndex}`, title: '', subtitle: '', body: '', scenes: [{ id: sceneId, kind: 'chapter', parentId: '', title: '新篇章', articleTitle: '', articleSubtitle: '', articleBody: '', text: '', character: '旁白', background: '', mapX: 18, mapY: 25 }], assets: [], logs: {}, activeScene: sceneId, characters: {}, map: { background: '', backgroundName: '' }, inspirationNotes: [], dailyGoal: 500 } };
+      }
+      function persistImmediately() {
+        clearTimeout(saveTimer);
+        try { saveLibraryNow(); $('#saveStatus').textContent = '已儲存至此裝置'; return true }
+        catch { $('#saveStatus').textContent = '儲存空間不足'; toast('無法儲存專案，請匯出備份或移除大型圖片。'); return false }
+      }
+      function switchProject(id) {
+        if (id === activeProjectId || !projects.some(project => project.id === id)) return;
+        if (!persistImmediately()) { $('#projectSelect').value = activeProjectId; return }
+        const previousId = activeProjectId, previousState = state;
+        activeProjectId = id;
+        state = structuredClone(projects.find(project => project.id === id).data);
+        stageLineIndex = 0;
+        render();
+        if (!persistImmediately()) { activeProjectId = previousId; state = previousState; renderProjects(); render(); return }
+        toast(`已切換至「${state.name || '未命名專案'}」。`);
+      }
+      function createProject() {
+        if (!persistImmediately()) return;
+        const previousId = activeProjectId, previousState = state;
+        const project = makeBlankProject();
+        projects.push(project);
+        activeProjectId = project.id;
+        state = structuredClone(project.data);
+        stageLineIndex = 0;
+        render();
+        if (!persistImmediately()) {
+          projects = projects.filter(item => item.id !== project.id);
+          activeProjectId = previousId;
+          state = previousState;
+          render();
+          return;
+        }
+        $('#projectName').focus();
+        $('#projectName').select();
+      }
+      function requestDeleteProject(fromMobile = false) {
+        if (projects.length < 2) return toast('至少保留一個專案。');
+        $('#deleteProjectName').textContent = state.name || '未命名專案';
+        $('#deleteProjectModal').dataset.fromMobile = String(fromMobile);
+        $('#deleteProjectModal').classList.add('open');
+        $('#cancelDeleteProject').focus();
+      }
+      function deleteProject() {
+        if (projects.length < 2) return toast('至少保留一個專案。');
+        if (!persistImmediately()) return;
+        const previousProjects = projects, previousId = activeProjectId, previousState = state;
+        projects = projects.filter(project => project.id !== activeProjectId);
+        const next = projects[0];
+        activeProjectId = next.id;
+        state = structuredClone(next.data);
+        stageLineIndex = 0;
+        render();
+        if (!persistImmediately()) {
+          projects = previousProjects;
+          activeProjectId = previousId;
+          state = previousState;
+          render();
+          return;
+        }
+        toast('專案已刪除。');
+      }
+      function normalizeInspirationNotes() {
+        const legacyNote = typeof state.inspiration === 'string' && state.inspiration !== '雨停的時候，有一個人沒有離開。你會先看見什麼？'
+          ? state.inspiration.trim()
+          : '';
+        const notes = Array.isArray(state.inspirationNotes) ? state.inspirationNotes : [];
+        state.inspirationNotes = notes
+          .filter(note => note && typeof note.text === 'string' && note.text.trim())
+          .map(note => ({
+            id: typeof note.id === 'string' && note.id ? note.id : projectId(),
+            text: note.text,
+            tags: [...new Set((Array.isArray(note.tags) ? note.tags : []).filter(tag => typeof tag === 'string').map(tag => tag.trim().replace(/^#+/, '')).filter(Boolean))]
+          }));
+        if (!state.inspirationNotes.length && legacyNote) {
+          state.inspirationNotes.push({ id: projectId(), text: legacyNote, tags: [] });
+        }
+        delete state.inspiration;
+      }
+      function resetInspirationEditor() {
+        inspirationEditingId = null;
+        inspirationTagFilter = '';
+        inspirationEditingProjectId = activeProjectId;
+        $('#inspiration').value = '';
+        $('#inspirationTags').value = '';
+        $('#saveInspiration').textContent = '儲存筆記';
+        $('#cancelInspirationEdit').classList.add('hidden');
+      }
+      function renderInspirationNotes() {
+        normalizeInspirationNotes();
+        const notes = state.inspirationNotes;
+        const search = $('#inspirationSearch').value.trim().toLocaleLowerCase();
+        const allTags = [...new Set(notes.flatMap(note => note.tags))].sort((a, b) => a.localeCompare(b, 'zh-Hant'));
+        const filters = $('#inspirationTagFilters'), list = $('#inspirationNoteList');
+        filters.replaceChildren();
+        list.replaceChildren();
+        const addFilter = (tag, label) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = `prompt-tag${inspirationTagFilter === tag ? ' active' : ''}`;
+          button.textContent = label;
+          button.addEventListener('click', () => {
+            inspirationTagFilter = tag;
+            renderInspirationNotes();
+          });
+          filters.append(button);
+        };
+        addFilter('', '全部');
+        allTags.forEach(tag => addFilter(tag, `#${tag}`));
+        const filtered = notes.filter(note => {
+          const matchesTag = !inspirationTagFilter || note.tags.includes(inspirationTagFilter);
+          const searchable = `${note.text} ${note.tags.join(' ')}`.toLocaleLowerCase();
+          return matchesTag && (!search || searchable.includes(search));
+        });
+        $('#inspirationCount').textContent = `${filtered.length}/${notes.length}`;
+        $('#quickInspirationCount').textContent = `${notes.length} 則已儲存`;
+        if (!filtered.length) {
+          const empty = document.createElement('p');
+          empty.className = 'inspiration-note-empty';
+          empty.textContent = notes.length ? '找不到符合條件的筆記。' : '儲存的靈感會顯示在這裡。';
+          list.append(empty);
+          return;
+        }
+        filtered.forEach(note => {
+          const card = document.createElement('article');
+          card.className = 'inspiration-note';
+          const content = document.createElement('p');
+          content.className = 'inspiration-note-content';
+          content.textContent = note.text;
+          card.append(content);
+          if (note.tags.length) {
+            const tags = document.createElement('div');
+            tags.className = 'inspiration-note-tags';
+            note.tags.forEach(tag => {
+              const button = document.createElement('button');
+              button.type = 'button';
+              button.className = 'prompt-tag';
+              button.textContent = `#${tag}`;
+              button.addEventListener('click', () => {
+                inspirationTagFilter = tag;
+                renderInspirationNotes();
+              });
+              tags.append(button);
+            });
+            card.append(tags);
+          }
+          const actions = document.createElement('div');
+          actions.className = 'inspiration-note-actions';
+          const edit = document.createElement('button');
+          edit.type = 'button';
+          edit.textContent = '編輯';
+          edit.addEventListener('click', () => {
+            inspirationEditingId = note.id;
+            inspirationEditingProjectId = activeProjectId;
+            $('#inspiration').value = note.text;
+            $('#inspirationTags').value = note.tags.join(', ');
+            $('#saveInspiration').textContent = '儲存修改';
+            $('#cancelInspirationEdit').classList.remove('hidden');
+            $('#inspiration').focus();
+          });
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.textContent = '刪除';
+          remove.setAttribute('aria-label', '刪除靈感筆記');
+          remove.addEventListener('click', () => {
+            if (!window.confirm('確定刪除這則靈感筆記？')) return;
+            state.inspirationNotes = state.inspirationNotes.filter(item => item.id !== note.id);
+            if (inspirationEditingId === note.id) resetInspirationEditor();
+            renderInspirationNotes();
+            persist();
+          });
+          actions.append(edit, remove);
+          card.append(actions);
+          list.append(card);
+        });
+      }
+      function render() {
+        if (inspirationEditingProjectId !== activeProjectId) {
+          const hasDraft = $('#inspiration').value.trim() || $('#inspirationTags').value.trim();
+          resetInspirationEditor();
+          if (hasDraft) toast('未儲存的靈感筆記已清空。');
+        }
+        if ($('#quickInspiration').dataset.projectId !== activeProjectId) {
+          $('#quickInspirationText').value = '';
+          $('#quickInspirationTags').value = '';
+          $('#quickInspiration').dataset.projectId = activeProjectId;
+        }
+        normalizeInspirationNotes();
+        if (!Number.isInteger(state.dailyGoal) || state.dailyGoal < 1 || state.dailyGoal > 1000000) state.dailyGoal = 500;
+        state.characters = state.characters || {};
+        state.map = state.map || { background: '', backgroundName: '' };
+        state.scenes.forEach((item, index) => {
+          item.kind = item.kind || 'chapter';
+          item.parentId = item.parentId || '';
+          item.articleTitle ??= (index === 0 ? state.title : item.title);
+          item.articleSubtitle ??= (index === 0 ? state.subtitle : item.title);
+          item.articleBody ??= (index === 0 ? state.body : (item.text || ''));
+          if (Array.isArray(item.cast)) item.cast = item.cast.map(names => Array.isArray(names)
+            ? [...new Set(names.filter(name => typeof name === 'string' && state.characters[name]))].slice(0, 4)
+            : []);
+        });
+        if (!state.scenes.some(item => item.id === state.activeScene)) state.activeScene = state.scenes[0]?.id;
+        const scene = currentScene(), mode = $('#editorLayout').dataset.mode || 'article';
+        renderProjects();
+        $('#projectName').value = state.name || '';
+        $('#articleTitle').value = scene?.articleTitle || '';
+        $('#articleSubtitle').value = scene?.articleSubtitle || '';
+        $('#articleBody').value = scene?.articleBody || '';
+        const fontSize = ['14', '16', '18'].includes(String(state.fontSize)) ? String(state.fontSize) : '16';
+        $('#fontSize').value = fontSize;
+        $('#articleBody').style.fontSize = `${fontSize}px`;
+        $('#editorLayout').dataset.mode = mode;
+        $$('[data-editor-mode]').forEach(button => button.classList.toggle('active', button.dataset.editorMode === mode));
+        renderScenes();
+        renderAssets();
+        renderStats();
+        renderInspirationNotes();
+        updateNovel();
+        updateNodeEditor();
+      }
+      function renderScenes() { const list = $('#sceneList'); list.innerHTML = ''; state.scenes.forEach((scene, i) => { const row = document.createElement('div'); row.className = 'scene-row' + (scene.id === state.activeScene ? ' active' : ''); row.innerHTML = `<span class="scene-num">${String(i + 1).padStart(2, '0')}</span><span class="scene-title"></span><button title="刪除章節" aria-label="刪除章節">×</button>`; row.querySelector('.scene-title').textContent = scene.title; row.title = `${scene.kind === 'act' ? '幕' : '篇章'}${scene.parentId ? ` · ${state.scenes.find(parent => parent.id === scene.parentId)?.title || ''}` : ''}`; row.addEventListener('click', event => { if (event.target.closest('button')) return; selectStoryScene(scene.id) }); row.querySelector('button').addEventListener('click', event => { event.stopPropagation(); deleteStoryNode(scene.id) }); list.append(row) }); const scene = currentScene(); $('#editorCrumb').textContent = scene ? `${state.name}　/　${scene.title}` : state.name }
+      function renderBackgroundLibrary() {
+        const grid = $('#backgroundLibraryGrid'), scene = currentScene(), fragments = scene ? sceneFragments(scene) : [];
+        grid.replaceChildren();
+        if (!fragments.length) {
+          $('#backgroundTargetTitle').textContent = '尚無可設定背景的句子';
+          $('#backgroundTargetText').textContent = '先在「視覺小說」編輯正文或對白，再回來選擇背景。';
+          $('#backgroundPrevious').disabled = true;
+          $('#backgroundNext').disabled = true;
+          $('#clearSentenceBackground').disabled = true;
+        } else {
+          stageLineIndex = Math.min(stageLineIndex, fragments.length - 1);
+          const index = stageLineIndex, fragment = fragments[index];
+          $('#backgroundTargetTitle').textContent = `第 ${index + 1} 句背景`;
+          $('#backgroundTargetText').textContent = fragment.text || fragment.sourceSentence || '（空白句子）';
+          $('#backgroundPrevious').disabled = index === 0;
+          $('#backgroundNext').disabled = index >= fragments.length - 1;
+          $('#clearSentenceBackground').disabled = !Number.isInteger(fragment.backgroundAssetIndex);
+          $('#backgroundPrevious').onclick = () => {
+            if (stageLineIndex <= 0) return;
+            stageLineIndex--;
+            renderStageDialogue(scene);
+            updateRoleCast(scene);
+            renderBackgroundLibrary();
+          };
+          $('#backgroundNext').onclick = () => {
+            if (stageLineIndex >= fragments.length - 1) return;
+            stageLineIndex++;
+            renderStageDialogue(scene);
+            updateRoleCast(scene);
+            renderBackgroundLibrary();
+          };
+          $('#clearSentenceBackground').onclick = () => {
+            fragment.backgroundAssetIndex = null;
+            renderStageDialogue(scene);
+            updateRoleCast(scene);
+            renderBackgroundLibrary();
+            persist();
+          };
+        }
+        const assets = state.assets || [];
+        if (!assets.some(asset => asset?.data)) {
+          const empty = document.createElement('div');
+          empty.className = 'background-library-empty';
+          empty.textContent = '背景圖片庫還是空的。使用「新增背景圖片」匯入圖片。';
+          grid.append(empty);
+          return;
+        }
+        assets.forEach((asset, index) => {
+          if (!asset?.data) return;
+          const card = document.createElement('article');
+          card.className = `background-library-card${fragments[stageLineIndex]?.backgroundAssetIndex === index ? ' selected' : ''}`;
+          const image = document.createElement('img');
+          image.src = asset.data;
+          image.alt = asset.name || `背景圖片 ${index + 1}`;
+          const name = document.createElement('p');
+          name.textContent = asset.name || `背景圖片 ${index + 1}`;
+          if (asset.description) {
+            const description = document.createElement('p');
+            description.textContent = asset.description;
+            description.className = 'background-asset-description';
+            card.append(image, name, description);
+          } else card.append(image, name);
+          if (Array.isArray(asset.tags) && asset.tags.length) {
+            const tags = document.createElement('div');
+            tags.className = 'inspiration-note-tags';
+            asset.tags.forEach(tag => {
+              const chip = document.createElement('span');
+              chip.className = 'prompt-tag';
+              chip.textContent = `#${tag}`;
+              tags.append(chip);
+            });
+            card.append(tags);
+          }
+          const actions = document.createElement('div');
+          actions.className = 'background-library-actions';
+          const apply = document.createElement('button');
+          apply.type = 'button';
+          apply.className = 'background-apply';
+          apply.textContent = fragments.length ? '套用至此句' : '先新增小說句子';
+          apply.disabled = !fragments.length;
+          apply.addEventListener('click', () => {
+            const fragment = sceneFragments(currentScene())[stageLineIndex];
+            if (!fragment) return;
+            fragment.backgroundAssetIndex = index;
+            renderStageDialogue(currentScene());
+            updateRoleCast(currentScene());
+            renderBackgroundLibrary();
+            persist();
+          });
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.textContent = '移除';
+          remove.setAttribute('aria-label', `移除背景圖片 ${asset.name || index + 1}`);
+          remove.addEventListener('click', () => removeAsset(index));
+          actions.append(apply, remove);
+          card.append(actions);
+          grid.append(card);
+        });
+      }
+      function parseAssetTags(value) {
+        return [...new Set(value.split(/[,，]/).map(tag => tag.trim().replace(/^#+/, '')).filter(Boolean))];
+      }
+      function renderAssets() {
+        const grid = $('#assetGrid'), libraryGrid = $('#libraryGrid'), query = $('#assetSearch').value.trim().toLocaleLowerCase();
+        state.assets = (Array.isArray(state.assets) ? state.assets : []).filter(asset => asset && typeof asset === 'object' && typeof asset.data === 'string').map(asset => ({
+          ...asset,
+          name: typeof asset.name === 'string' ? asset.name : '',
+          description: typeof asset.description === 'string' ? asset.description : '',
+          tags: [...new Set((Array.isArray(asset.tags) ? asset.tags : []).filter(tag => typeof tag === 'string').map(tag => tag.trim().replace(/^#+/, '')).filter(Boolean))]
+        }));
+        const assets = state.assets, tags = [...new Set(assets.flatMap(asset => asset.tags))]
+          .sort((a, b) => a.localeCompare(b, 'zh-Hant'));
+        if (assetTagFilter && !tags.includes(assetTagFilter)) assetTagFilter = '';
+        grid.replaceChildren();
+        libraryGrid.replaceChildren();
+        const filters = $('#assetTagFilters');
+        filters.replaceChildren();
+        const addTagFilter = (tag, text) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = `prompt-tag${assetTagFilter === tag ? ' active' : ''}`;
+          button.textContent = text;
+          button.addEventListener('click', () => {
+            assetTagFilter = tag;
+            renderAssets();
+          });
+          filters.append(button);
+        };
+        addTagFilter('', '全部');
+        tags.forEach(tag => addTagFilter(tag, `#${tag}`));
+        if (!assets.length) {
+          grid.innerHTML = '<div class="empty-assets">尚未加入圖片素材</div>';
+          libraryGrid.innerHTML = '<div class="asset-library-empty">還沒有圖片素材。匯入圖片後，可編輯名稱、說明及標籤。</div>';
+          $('#assetCount').textContent = '0 張圖片';
+          return;
+        }
+        const visibleAssets = assets.map((asset, index) => ({ asset, index })).filter(({ asset }) => {
+          const matchesTag = !assetTagFilter || (Array.isArray(asset.tags) && asset.tags.includes(assetTagFilter));
+          const searchable = `${asset.name} ${asset.description} ${asset.tags.join(' ')}`.toLocaleLowerCase();
+          return matchesTag && (!query || searchable.includes(query));
+        });
+        $('#assetCount').textContent = `顯示 ${visibleAssets.length} / ${assets.length} 張圖片`;
+        if (!visibleAssets.length) {
+          const empty = document.createElement('div');
+          empty.className = 'asset-library-empty';
+          empty.textContent = '找不到符合條件的圖片。';
+          libraryGrid.append(empty);
+        }
+        assets.forEach((asset, index) => {
+          if (!asset?.data) return;
+          const thumb = document.createElement('div');
+          thumb.className = 'asset-thumb';
+          const thumbImage = document.createElement('img');
+          thumbImage.src = asset.data;
+          thumbImage.alt = asset.name || '';
+          const thumbDelete = document.createElement('button');
+          thumbDelete.type = 'button';
+          thumbDelete.title = '移除圖片';
+          thumbDelete.textContent = '×';
+          thumbDelete.addEventListener('click', () => removeAsset(index));
+          thumb.append(thumbImage, thumbDelete);
+          grid.append(thumb);
+        });
+        visibleAssets.forEach(({ asset, index }) => {
+          const card = document.createElement('article');
+          card.className = 'library-item asset-library-card';
+          const image = document.createElement('img');
+          image.src = asset.data;
+          image.alt = asset.name || `圖片素材 ${index + 1}`;
+          const description = document.createElement('p');
+          description.className = 'asset-library-description';
+          description.textContent = asset.description;
+          const tagList = document.createElement('div');
+          tagList.className = 'asset-library-card-tags';
+          asset.tags.forEach(tag => {
+            const tagButton = document.createElement('button');
+            tagButton.type = 'button';
+            tagButton.className = 'prompt-tag';
+            tagButton.textContent = `#${tag}`;
+            tagButton.setAttribute('aria-label', `依標籤 ${tag} 篩選圖片`);
+            tagButton.addEventListener('click', () => {
+              assetTagFilter = tag;
+              renderAssets();
+            });
+            tagList.append(tagButton);
+          });
+          const fields = document.createElement('div');
+          fields.className = 'asset-library-fields';
+          const nameInput = document.createElement('input');
+          nameInput.value = asset.name || '';
+          nameInput.maxLength = 120;
+          nameInput.setAttribute('aria-label', '圖片名稱');
+          nameInput.placeholder = '圖片名稱';
+          const descriptionInput = document.createElement('input');
+          descriptionInput.value = asset.description || '';
+          descriptionInput.maxLength = 240;
+          descriptionInput.setAttribute('aria-label', '圖片說明');
+          descriptionInput.placeholder = '圖片說明（選填）';
+          const tagsInput = document.createElement('input');
+          tagsInput.value = (Array.isArray(asset.tags) ? asset.tags : []).join(', ');
+          tagsInput.setAttribute('aria-label', '圖片標籤');
+          tagsInput.placeholder = '標籤，以逗號分隔';
+          const actions = document.createElement('div');
+          actions.className = 'asset-library-actions';
+          const save = document.createElement('button');
+          save.type = 'button';
+          save.className = 'asset-save';
+          save.textContent = '儲存';
+          save.addEventListener('click', () => {
+            const name = nameInput.value.trim();
+            if (!name) return toast('請輸入圖片名稱。');
+            asset.name = name;
+            asset.description = descriptionInput.value.trim();
+            asset.tags = parseAssetTags(tagsInput.value);
+            renderAssets();
+            updateNovel();
+            persist();
+            toast('圖片資料已儲存。');
+          });
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.textContent = '刪除';
+          remove.setAttribute('aria-label', `刪除圖片 ${asset.name || index + 1}`);
+          remove.addEventListener('click', () => removeAsset(index));
+          actions.append(save, remove);
+          fields.append(nameInput, descriptionInput, tagsInput, actions);
+          card.append(image);
+          if (asset.description) card.append(description);
+          if (asset.tags.length) card.append(tagList);
+          card.append(fields);
+          libraryGrid.append(card);
+        });
+      }
+      function removeAsset(i) {
+        const removed = state.assets[i];
+        if (!removed) return;
+        if (!window.confirm(`確定刪除圖片「${removed.name || `圖片素材 ${i + 1}`}」？使用此圖片的句子背景也會一併清除。`)) return;
+        state.assets.splice(i, 1);
+        state.scenes.forEach(scene => {
+          if (scene.background === removed.data) { delete scene.background; delete scene.backgroundName }
+          if (!Array.isArray(scene.fragments)) return;
+          scene.fragments.forEach(fragment => {
+            if (fragment.backgroundAssetIndex === i) fragment.backgroundAssetIndex = null;
+            else if (Number.isInteger(fragment.backgroundAssetIndex) && fragment.backgroundAssetIndex > i) fragment.backgroundAssetIndex--;
+          });
+        });
+        renderAssets();
+        updateNovel();
+        persist();
+      }
+      function renderStats() {
+        const count = words($('#articleBody').value), dailyGoal = state.dailyGoal || 500;
+        const progress = Math.min(100, Math.round(count / dailyGoal * 100));
+        $('#wordCount').textContent = count;
+        $('#goalProgress').textContent = count;
+        $('#dailyGoalInput').value = dailyGoal;
+        $('#goalBar').style.width = `${progress}%`;
+        $('#goalPercent').textContent = `${progress}%`;
+        const today = localDay(), days = Object.keys(state.logs).sort();
+        const week = $('#weekDots');
+        week.innerHTML = '';
+        const names = ['日', '一', '二', '三', '四', '五', '六'];
+        for (let offset = 6; offset >= 0; offset--) {
+          const d = new Date();
+          d.setDate(d.getDate() - offset);
+          const key = localDay(d), el = document.createElement('span');
+          el.className = 'day' + (state.logs[key] ? ' done' : '') + (key === today ? ' today' : '');
+          el.textContent = names[d.getDay()];
+          el.title = `${key}${state.logs[key] ? ` · ${state.logs[key]} 字` : ''}`;
+          week.appendChild(el);
+        }
+        let streak = 0;
+        for (let d = new Date(); ; d.setDate(d.getDate() - 1)) {
+          const key = localDay(d);
+          if (state.logs[key]) streak++;
+          else if (key === today && streak === 0) continue;
+          else break;
+        }
+        $('#streakNum').textContent = streak;
+        const checked = Boolean(state.logs[today]);
+        $('#checkinButton').classList.toggle('checked', checked);
+        $('#checkinButton').textContent = checked ? '✓　今日已完成' : '◷　完成今日寫作';
+        $('#checkinHint').textContent = checked ? `今天記錄了 ${state.logs[today]} 字` : '寫下 1 個字就能留下今天的紀錄';
+        const monthPrefix = today.slice(0, 7), monthEntries = days.filter(d => d.startsWith(monthPrefix));
+        $('#monthWords').textContent = monthEntries.reduce((sum, d) => sum + (Number(state.logs[d]) || 0), 0);
+        $('#monthDays').textContent = monthEntries.length;
+        let best = 0, run = 0, prev = null;
+        days.forEach(day => {
+          const date = new Date(day + 'T00:00:00');
+          if (prev) {
+            const diff = (date - prev) / 86400000;
+            run = diff === 1 ? run + 1 : 1;
+          } else run = 1;
+          best = Math.max(best, run);
+          prev = date;
+        });
+        $('#bestStreak').textContent = best;
+        renderCalendar();
+      }
+      function renderCalendar() { const cal = $('#calendar'); if (!cal) return; cal.innerHTML = '';['日', '一', '二', '三', '四', '五', '六'].forEach(d => { const el = document.createElement('div'); el.className = 'weekday'; el.textContent = d; cal.appendChild(el) }); const now = new Date(), first = new Date(now.getFullYear(), now.getMonth(), 1), last = new Date(now.getFullYear(), now.getMonth() + 1, 0); for (let i = 0; i < first.getDay(); i++) { const empty = document.createElement('div'); empty.className = 'cal-day'; cal.appendChild(empty) } for (let day = 1; day <= last.getDate(); day++) { const date = new Date(now.getFullYear(), now.getMonth(), day), key = localDay(date), entry = state.logs[key], el = document.createElement('div'); el.className = 'cal-day' + (entry ? ' has-entry' : '') + (key === localDay() ? ' selected' : ''); el.textContent = day; if (entry) { const count = document.createElement('span'); count.className = 'cal-count'; count.textContent = `${entry} 字`; el.appendChild(count) } cal.appendChild(el) } }
+      function renderStageDialogue(scene) {
+        const fragments = sceneFragments(scene);
+        if (fragments.length) stageLineIndex %= fragments.length;
+        const fragment = fragments[stageLineIndex];
+        const background = $('#stageImage'), backgroundAsset = state.assets[fragment?.backgroundAssetIndex];
+        if (backgroundAsset?.data) {
+          background.src = backgroundAsset.data;
+          background.classList.remove('hidden');
+        } else {
+          background.removeAttribute('src');
+          background.classList.add('hidden');
+        }
+        const roleNames = (fragment?.cast || []).slice(0, 4);
+        const visibleRoles = roleNames.map(name => ({ name, role: state.characters[name] })).filter(item => item.role);
+        const stageCast = $('#stageCast');
+        stageCast.replaceChildren();
+        visibleRoles.forEach(({ name, role }) => {
+          const figure = document.createElement('div');
+          figure.className = 'stage-role';
+          if (role.data) {
+            const image = document.createElement('img');
+            image.src = role.data;
+            image.alt = `${name}角色立繪`;
+            figure.append(image);
+          } else {
+            const face = document.createElement('span');
+            face.textContent = name === '旁白' ? '✦' : name.slice(0, 1);
+            figure.append(face);
+          }
+          stageCast.append(figure);
+        });
+        const dialogue = $('#stageDialogue');
+        dialogue.querySelector('strong').textContent = fragment?.speaker || '旁白';
+        dialogue.querySelector('p').textContent = fragment?.text || (fragments.length ? '' : '（此段沒有顯示中的對白）');
+        $('#stageNext').textContent = fragments.length > 1 ? `第 ${(stageLineIndex % fragments.length) + 1}/${fragments.length} 句 · 下一句　→` : '下一句　→';
+        $('#stageNext').disabled = fragments.length < 2;
+      }
+      function updateNovel() {
+        const scene = currentScene();
+        if (!scene) return;
+        $('#sceneContent').value = scene.text || '';
+        renderStageDialogue(scene);
+        updateRoleCast(scene);
+        renderScenes();
+        renderStoryNavigation();
+        renderBackgroundLibrary();
+      }
+      function setStoryView(name) { $$('[data-story-view]').forEach(button => button.classList.toggle('active', button.dataset.storyView === name)); $$('.story-panel').forEach(panel => panel.classList.toggle('active', panel.id === `${name}Panel`)); if (name === 'map') renderStoryNavigation(); if (name === 'scene') updateNovel() }
+      function selectStoryScene(id) { state.activeScene = id; stageLineIndex = 0; renderScenes(); render(); setStoryView('scene'); persist() }
+      function updateNodeEditor() { const scene = currentScene(); if (!scene) return; const chapters = state.scenes.filter(item => item.kind !== 'act'); $('#activeNodeKind').textContent = scene.kind === 'act' ? '幕' : '篇章'; $('#activeNodeTitle').value = scene.title; const parent = state.scenes.find(item => item.id === scene.parentId); $('#activeNodeParent').textContent = scene.kind === 'act' && parent ? `隸屬篇章：${parent.title}` : ''; $('#mapPointTitle').value = scene.title; $('#mapPointType').value = scene.kind === 'act' ? 'act' : 'chapter'; const parentSelect = $('#mapPointParent'), newParent = $('#newSceneParent');[parentSelect, newParent].forEach(select => { if (!select) return; const selected = select === parentSelect ? scene.parentId : (newParent.value || chapters[0]?.id || ''); select.innerHTML = ''; chapters.forEach(chapter => { const option = document.createElement('option'); option.value = chapter.id; option.textContent = chapter.title; select.append(option) }); if (!chapters.length) { const option = document.createElement('option'); option.value = ''; option.textContent = '先新增篇章'; select.append(option) } select.value = selected }); $('#mapParentWrap').classList.toggle('hidden', scene.kind !== 'act'); $('#newSceneParentWrap').classList.toggle('hidden', $('#newSceneType').value !== 'act') }
+      function renderStoryNavigation() { const board = $('#mapBoard'); if (!board) return; board.querySelectorAll('.map-node,.map-connector').forEach(node => node.remove()); const background = state.map?.background || ''; board.classList.toggle('has-background', Boolean(background)); board.style.backgroundImage = background ? `linear-gradient(#fff2,#fff2),url("${background}")` : ''; state.scenes.forEach((scene, index) => { if (!Number.isFinite(scene.mapX)) scene.mapX = 18 + (index * 21) % 65; if (!Number.isFinite(scene.mapY)) scene.mapY = 25 + (index * 27) % 55 }); state.scenes.forEach(scene => { const node = document.createElement('button'); node.type = 'button'; node.className = `map-node ${scene.kind === 'act' ? 'map-node-act' : 'map-node-chapter'}${scene.id === state.activeScene ? ' active' : ''}`; node.style.left = `${scene.mapX}%`; node.style.top = `${scene.mapY}%`; node.dataset.sceneId = scene.id; node.setAttribute('aria-label', `開啟${scene.kind === 'act' ? '幕' : '篇章'}：${scene.title}`); node.innerHTML = `<span class="map-pin"><span>${scene.kind === 'act' ? '◆' : '●'}</span></span><span class="map-label"></span>`; const parent = state.scenes.find(item => item.id === scene.parentId); node.querySelector('.map-label').textContent = `${scene.kind === 'act' ? '幕' : '篇章'} · ${scene.title}`; node.title = parent ? `所屬篇章：${parent.title}` : scene.title; node.addEventListener('click', () => { if (node.dataset.suppressClick === '1') { delete node.dataset.suppressClick; return } selectStoryScene(scene.id) }); node.addEventListener('pointerdown', event => { node.setPointerCapture(event.pointerId); node.dataset.dragging = '1'; node.dataset.dragStartX = event.clientX; node.dataset.dragStartY = event.clientY; node.dataset.dragMoved = '0'; event.preventDefault() }); node.addEventListener('pointermove', event => { if (node.dataset.dragging !== '1' || Math.hypot(event.clientX - Number(node.dataset.dragStartX), event.clientY - Number(node.dataset.dragStartY)) < 5) return; node.dataset.dragMoved = '1'; const bounds = board.getBoundingClientRect(); scene.mapX = Math.max(4, Math.min(96, (event.clientX - bounds.left) / bounds.width * 100)); scene.mapY = Math.max(7, Math.min(91, (event.clientY - bounds.top) / bounds.height * 100)); node.style.left = `${scene.mapX}%`; node.style.top = `${scene.mapY}%`; drawMapConnectors() }); node.addEventListener('pointerup', () => { if (node.dataset.dragging !== '1') return; if (node.dataset.dragMoved === '1') { node.dataset.suppressClick = '1'; setTimeout(() => delete node.dataset.suppressClick, 400); persist() } delete node.dataset.dragging; delete node.dataset.dragMoved }); node.addEventListener('pointercancel', () => { delete node.dataset.dragging; delete node.dataset.dragMoved; persist() }); board.append(node) }); drawMapConnectors(); updateNodeEditor() }
+      function drawMapConnectors() { const board = $('#mapBoard'); if (!board) return; board.querySelectorAll('.map-connector').forEach(line => line.remove()); const rect = board.getBoundingClientRect(); state.scenes.filter(scene => scene.kind === 'act' && scene.parentId).forEach(scene => { const parent = state.scenes.find(item => item.id === scene.parentId); if (!parent) return; const x1 = parent.mapX / 100 * rect.width, y1 = parent.mapY / 100 * rect.height, x2 = scene.mapX / 100 * rect.width, y2 = scene.mapY / 100 * rect.height, dx = x2 - x1, dy = y2 - y1, line = document.createElement('div'); line.className = 'map-connector'; line.style.left = `${x1}px`; line.style.top = `${y1}px`; line.style.width = `${Math.hypot(dx, dy)}px`; line.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`; board.prepend(line) }) }
+      function openNodeModal(kind) { $('#newSceneType').value = kind; const selected = currentScene(); if (kind === 'act' && selected) $('#newSceneParent').value = selected.kind === 'act' ? selected.parentId : selected.id; $('#sceneModalTitle').textContent = kind === 'act' ? '新增一幕' : '新增篇章'; $('#confirmScene').textContent = kind === 'act' ? '新增幕' : '新增篇章'; updateNodeEditor(); $('#sceneModal').classList.add('open'); $('#newSceneTitle').focus() }
+      function createStoryNode() { const title = $('#newSceneTitle').value.trim(); if (!title) return toast('請輸入節點名稱。'); const kind = $('#newSceneType').value, parentId = kind === 'act' ? $('#newSceneParent').value : ''; if (kind === 'act' && !parentId) return toast('請先新增一個篇章，才能建立幕。'); const index = state.scenes.length, scene = { id: crypto.randomUUID(), kind, parentId, title, text: '', character: '悠', background: '', articleTitle: title, articleSubtitle: '', articleBody: '', mapX: 15 + (index * 19) % 72, mapY: 20 + (index * 23) % 65 }; state.scenes.push(scene); state.activeScene = scene.id; $('#newSceneTitle').value = ''; $('#sceneModal').classList.remove('open'); render(); setStoryView('scene'); persist() }
+      function deleteStoryNode(id) { const scene = state.scenes.find(item => item.id === id); if (!scene) return; if (scene.kind !== 'act' && state.scenes.some(item => item.parentId === id)) { toast('此篇章仍有幕，請先刪除或移動其下的幕。'); return } if (state.scenes.length < 2) return toast('至少保留一個地圖節點。'); state.scenes = state.scenes.filter(item => item.id !== id); if (state.activeScene === id) state.activeScene = state.scenes[0].id; render(); persist() }
+      function formatText(format) { const input = $('#articleBody'), scene = currentScene(), start = input.selectionStart, end = input.selectionEnd, selected = input.value.slice(start, end) || '文字', pairs = { bold: ['**', '**'], italic: ['*', '*'], underline: ['<u>', '</u>'], quote: ['> ', ''], h2: ['## ', ''], list: ['- ', ''] }, [before, after] = pairs[format]; let replacement; if (format === 'quote' || format === 'h2' || format === 'list') replacement = selected.split('\n').map(line => before + line).join('\n'); else replacement = before + selected + after; input.setRangeText(replacement, start, end, 'select'); input.focus(); if (scene) syncSceneText(scene, input.value); persist() }
+      function checkin() { const count = words($('#articleBody').value); if (!count) return toast('先寫下一些文字，再完成今日寫作。'); state.logs[localDay()] = count; persist(); renderStats(); toast('今天的寫作已記錄，明天也來寫一點吧。') }
+      function syncSceneText(scene, text, source = 'article') {
+        if (source === 'novel') {
+          scene.text = text;
+          scene.articleBody = parseNovelText(text).articleText;
+        } else {
+          scene.articleBody = text;
+          scene.text = text;
+        }
+        state.body = scene.articleBody;
+        $('#articleBody').value = scene.articleBody;
+        $('#sceneContent').value = scene.text;
+        renderStageDialogue(scene);
+        updateRoleCast(scene);
+        renderStats();
+      }
+      function switchPage(name) { activePage = name; $$('.page').forEach(p => p.classList.toggle('active', p.id === `page-${name}`)); $$('[data-page]').forEach(el => el.classList.toggle('active', el.dataset.page === name)); if (name === 'checkin') renderCalendar(); if (name === 'write') updateNovel() }
+      function setEditorMode(mode) {
+        if (!['article', 'novel', 'roles', 'backgrounds'].includes(mode)) return;
+        const editor = $('#editorLayout'), previousMode = editor.dataset.mode, scene = currentScene();
+        if (mode === previousMode) return;
+        if (scene && ['article', 'novel'].includes(previousMode) && ['article', 'novel'].includes(mode)) {
+          const novelArticleText = parseNovelText(scene.text || '').articleText;
+          const source = previousMode === 'article' ? (scene.articleBody || '') : novelArticleText;
+          const target = previousMode === 'article' ? novelArticleText : (scene.articleBody || '');
+          if (source !== target) {
+            const sourceLabel = previousMode === 'article' ? '文章正文' : '視覺小說對白';
+            const targetLabel = previousMode === 'article' ? '視覺小說對白' : '文章正文';
+            if (!window.confirm(`${sourceLabel}與${targetLabel}目前內容不同。要以${sourceLabel}更新${targetLabel}並切換編輯模式嗎？`)) return;
+            syncSceneText(scene, previousMode === 'novel' ? (scene.text || '') : source, previousMode === 'novel' ? 'novel' : 'article');
+            persist();
+          }
+        }
+        editor.dataset.mode = mode;
+        $$('[data-editor-mode]').forEach(button => button.classList.toggle('active', button.dataset.editorMode === mode));
+        if (mode === 'novel') updateNovel();
+        if (mode === 'roles') renderRoleLibrary();
+        if (mode === 'backgrounds') renderBackgroundLibrary();
+      }
+      function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])) }
+      function fileName(ext) { return (state.name || 'quillframe-project').replace(/[\\/:*?"<>|]/g, '_') + '.' + ext }
+      function download(content, name, type) { const blob = new Blob([content], { type }), url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1500) }
+      function exportMarkdown() { return `# ${state.name}\n\n${state.scenes.map((scene, index) => { const parent = state.scenes.find(item => item.id === scene.parentId); return `## ${scene.kind === 'act' ? '幕' : '篇章'} ${index + 1}：${scene.title}${parent ? `（${parent.title}）` : ''}\n\n### ${scene.articleTitle || scene.title}\n\n${scene.articleBody || ''}\n\n### 視覺小說\n\n${scene.text || ''}` }).join('\n\n---\n\n')}` }
+      function exportArticleHtml() { const sections = state.scenes.map(scene => `<section><h2>${esc(scene.kind === 'act' ? '幕' : '篇章')}｜${esc(scene.title)}</h2><h3>${esc(scene.articleTitle || scene.title)}</h3><h4>${esc(scene.articleSubtitle || '')}</h4><article>${esc(scene.articleBody || '')}</article></section>`).join(''); return `<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${esc(state.name)}</title><style>body{max-width:720px;margin:8vh auto;padding:0 22px;color:#30352e;font:18px/2 Georgia,'Noto Serif TC',serif}h1{font-size:2.2em}h2{font-size:1.2em;color:#758071;font-weight:400}h3{font-size:1.35em}h4{font-size:1em;color:#758071;font-weight:400}article{white-space:pre-wrap}@media(max-width:600px){body{margin:35px auto;font-size:16px}}</style><h1>${esc(state.name)}</h1>${sections}</html>` }
+      function exportNovelHtmlBase() { const scenes = JSON.stringify(state.scenes.map(s => ({ ...s, characterImage: state.characters?.[s.character]?.data || '' }))); return `<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(state.name)}</title><style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#202a25;color:#fff;font:16px Georgia,'Noto Serif TC',serif}.game{width:min(900px,100%);height:min(640px,100vh);min-height:430px;position:relative;background:linear-gradient(#a9c0bd,#e7d4ae 47%,#637c65 48%,#263f34);background-size:cover;background-position:center}.veil{position:absolute;inset:42% 0 0;background:linear-gradient(transparent,#0d181dcc)}.char{position:absolute;bottom:100px;left:50%;transform:translateX(-50%);font-size:clamp(120px,24vw,230px);color:#f1dfc5;text-shadow:0 5px 14px #0008}.box{position:absolute;bottom:18px;left:18px;right:18px;padding:18px;background:#1b221ddd;border:1px solid #ffffff66;border-radius:7px}.name{color:#f2d5a0;margin-bottom:8px}.text{white-space:pre-wrap;line-height:1.8}.next{float:right;margin-top:10px;background:#dbe7d9;border:0;padding:8px 14px;border-radius:4px;cursor:pointer}.counter{position:absolute;top:12px;right:14px;font:12px monospace}</style><main class="game" id="game"><div class="veil"></div><div class="char" id="char">悠</div><div class="counter" id="counter"></div><div class="box"><div class="name" id="name"></div><div class="text" id="text"></div><button class="next" id="next">繼續　→</button></div></main><script>const scenes=${scenes};let index=0;function show(){const s=scenes[index];document.getElementById('name').textContent=s.character||'旁白';document.getElementById('text').textContent=s.text;document.getElementById('char').textContent=s.characterImage?'':(s.character||'悠');document.getElementById('char').style.backgroundImage=s.characterImage?'url('+s.characterImage+')':'';document.getElementById('char').style.backgroundSize='contain';document.getElementById('char').style.backgroundRepeat='no-repeat';document.getElementById('char').style.backgroundPosition='center bottom';document.getElementById('counter').textContent=(index+1)+' / '+scenes.length;document.getElementById('game').style.backgroundImage=s.background?'linear-gradient(#0001,#0001),url("'+s.background+'")':''}document.getElementById('next').onclick=()=>{index=(index+1)%scenes.length;show()};document.addEventListener('keydown',e=>{if(e.key===' '||e.key==='ArrowRight')document.getElementById('next').click()});show();<\/script></html>` }
+      function exportNovelHtml() {
+        const originalScenes = state.scenes;
+        const playbackScenes = originalScenes.flatMap(scene => {
+          return sceneFragments(scene).map(fragment => ({
+            ...scene,
+            text: fragment.text,
+            character: fragment.speaker,
+            castCharacters: fragment.cast.map(name => ({ name, data: state.characters?.[name]?.data || '' }))
+          }));
+        });
+        state.scenes = playbackScenes.length ? playbackScenes : [{ id: 'empty', title: '空白', text: '（沒有可播放的對白）', character: '旁白', background: '' }];
+        try {
+          const html = exportNovelHtmlBase();
+          return html
+            .replace('</style>', ' .char{width:80%;height:72%;display:flex;align-items:flex-end;justify-content:center;gap:1%;font-size:clamp(72px,13vw,160px)}.char-item{width:24%;height:100%;display:grid;place-items:end center}.char-item img{width:100%;height:100%;object-fit:contain;object-position:center bottom}</style>')
+            .replace('<div class="char" id="char">悠</div>', '<div class="char" id="char"></div>')
+            .replace("document.getElementById('char').textContent=s.characterImage?'':(s.character||'悠');document.getElementById('char').style.backgroundImage=s.characterImage?'url('+s.characterImage+')':'';document.getElementById('char').style.backgroundSize='contain';document.getElementById('char').style.backgroundRepeat='no-repeat';document.getElementById('char').style.backgroundPosition='center bottom';", "const cast=document.getElementById('char');cast.replaceChildren();(s.castCharacters||[{name:s.character||'悠',data:s.characterImage||''}]).slice(0,4).forEach(role=>{const actor=document.createElement('div');actor.className='char-item';if(role.data){const image=document.createElement('img');image.src=role.data;image.alt=role.name;actor.append(image)}else actor.textContent=role.name==='旁白'?'✦':role.name.slice(0,1);cast.append(actor)});");
+        } finally {
+          state.scenes = originalScenes;
+        }
+      }
+      const zipEncoder = new TextEncoder();
+      const zipCrcTable = (() => {
+        const table = new Uint32Array(256);
+        for (let index = 0; index < table.length; index++) {
+          let value = index;
+          for (let bit = 0; bit < 8; bit++) value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
+          table[index] = value >>> 0;
+        }
+        return table;
+      })();
+      function crc32(bytes) {
+        let value = 0xffffffff;
+        for (const byte of bytes) value = zipCrcTable[(value ^ byte) & 0xff] ^ (value >>> 8);
+        return (value ^ 0xffffffff) >>> 0;
+      }
+      function joinBytes(chunks) {
+        const output = new Uint8Array(chunks.reduce((sum, chunk) => sum + chunk.length, 0));
+        let offset = 0;
+        chunks.forEach(chunk => { output.set(chunk, offset); offset += chunk.length });
+        return output;
+      }
+      function projectZipSnapshot() {
+        const project = structuredClone(state), entries = [], imagePaths = new Map(), imageMimes = {};
+        function addImage(data, suggestedName) {
+          if (imagePaths.has(data)) return imagePaths.get(data);
+          const match = data.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,([\s\S]*)$/);
+          if (!match) return data;
+          const rawName = String(suggestedName || '').split(/[\\/]/).pop().replace(/[<>:"|?*\x00-\x1f]/g, '_').trim();
+          const extensionByMime = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp', 'image/svg+xml': 'svg', 'image/avif': 'avif', 'image/bmp': 'bmp', 'image/tiff': 'tiff', 'image/heic': 'heic', 'image/heif': 'heif', 'image/x-icon': 'ico' };
+          const extension = rawName.match(/\.([a-zA-Z0-9]{1,8})$/)?.[1] || extensionByMime[match[1]] || 'img';
+          const base = (rawName.replace(/\.[^.]+$/, '') || `image-${entries.length + 1}`).slice(0, 100);
+          const path = `assets/${String(entries.length + 1).padStart(3, '0')}-${base}.${extension}`;
+          const binary = atob(match[2]), bytes = new Uint8Array(binary.length);
+          for (let index = 0; index < binary.length; index++) bytes[index] = binary.charCodeAt(index);
+          entries.push({ name: path, bytes });
+          imageMimes[path] = match[1];
+          imagePaths.set(data, `zip:${path}`);
+          return `zip:${path}`;
+        }
+        (project.assets || []).forEach(asset => { if (asset?.data) asset.data = addImage(asset.data, asset.name) });
+        Object.entries(project.characters || {}).forEach(([name, role]) => {
+          if (typeof role === 'string') project.characters[name] = { name, data: addImage(role, `${name}.png`), summary: '', design: '', personality: '', background: '' };
+          else if (role?.data) role.data = addImage(role.data, role.imageName || `${role.name || name}.png`);
+        });
+        (project.scenes || []).forEach(scene => {
+          if (scene?.background) scene.background = addImage(scene.background, scene.backgroundName || `${scene.title || 'scene'}.png`);
+        });
+        if (project.map?.background) project.map.background = addImage(project.map.background, project.map.backgroundName || 'map.png');
+        entries.unshift({ name: 'project.json', bytes: zipEncoder.encode(JSON.stringify({ format: 'quillframe-project-zip-v1', project, imageMimes }, null, 2)) });
+        return entries;
+      }
+      function createZip(entries) {
+        const localChunks = [], centralChunks = [];
+        let offset = 0;
+        if (entries.length > 0xffff) throw new Error('ZIP 檔案數量超出格式限制');
+        entries.forEach(entry => {
+          const name = zipEncoder.encode(entry.name), data = entry.bytes, checksum = crc32(data);
+          if (data.length > 0xffffffff || offset > 0xffffffff) throw new Error('專案檔案超出 ZIP 格式容量限制');
+          const local = new Uint8Array(30 + name.length), localView = new DataView(local.buffer);
+          localView.setUint32(0, 0x04034b50, true); localView.setUint16(4, 20, true); localView.setUint16(6, 0x0800, true);
+          localView.setUint16(8, 0, true); localView.setUint32(14, checksum, true); localView.setUint32(18, data.length, true);
+          localView.setUint32(22, data.length, true); localView.setUint16(26, name.length, true); localView.setUint16(28, 0, true);
+          local.set(name, 30); localChunks.push(local, data);
+          const central = new Uint8Array(46 + name.length), centralView = new DataView(central.buffer);
+          centralView.setUint32(0, 0x02014b50, true); centralView.setUint16(4, 20, true); centralView.setUint16(6, 20, true);
+          centralView.setUint16(8, 0x0800, true); centralView.setUint16(10, 0, true); centralView.setUint32(16, checksum, true);
+          centralView.setUint32(20, data.length, true); centralView.setUint32(24, data.length, true);
+          centralView.setUint16(28, name.length, true); centralView.setUint16(30, 0, true); centralView.setUint16(32, 0, true);
+          centralView.setUint32(38, 0, true); centralView.setUint32(42, offset, true); central.set(name, 46);
+          centralChunks.push(central);
+          offset += local.length + data.length;
+        });
+        const centralDirectory = joinBytes(centralChunks), localRecords = joinBytes(localChunks);
+        if (centralDirectory.length > 0xffffffff || localRecords.length > 0xffffffff) throw new Error('ZIP 專案超出格式容量限制');
+        const end = new Uint8Array(22), view = new DataView(end.buffer);
+        view.setUint32(0, 0x06054b50, true); view.setUint16(8, entries.length, true); view.setUint16(10, entries.length, true);
+        view.setUint32(12, centralDirectory.length, true); view.setUint32(16, localRecords.length, true); view.setUint16(20, 0, true);
+        return new Blob([localRecords, centralDirectory, end], { type: 'application/zip' });
+      }
+      async function readZip(file) {
+        const bytes = new Uint8Array(await file.arrayBuffer()), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+        const minOffset = Math.max(0, bytes.length - 0xffff - 22);
+        let endOffset = -1;
+        for (let offset = bytes.length - 22; offset >= minOffset; offset--) {
+          if (view.getUint32(offset, true) === 0x06054b50 && offset + 22 + view.getUint16(offset + 20, true) === bytes.length) { endOffset = offset; break }
+        }
+        if (endOffset < 0) throw new Error('找不到 ZIP 目錄');
+        const entryCount = view.getUint16(endOffset + 10, true), centralSize = view.getUint32(endOffset + 12, true), centralOffset = view.getUint32(endOffset + 16, true);
+        if (entryCount > 10000) throw new Error('ZIP 內檔案數量超出限制');
+        if (centralOffset + centralSize > endOffset) throw new Error('ZIP 目錄位置無效');
+        const files = new Map();
+        let offset = centralOffset, totalUncompressedSize = 0;
+        for (let index = 0; index < entryCount; index++) {
+          if (offset + 46 > bytes.length || view.getUint32(offset, true) !== 0x02014b50) throw new Error('ZIP 目錄格式無效');
+          const flags = view.getUint16(offset + 8, true), method = view.getUint16(offset + 10, true), checksum = view.getUint32(offset + 16, true);
+          const compressedSize = view.getUint32(offset + 20, true), uncompressedSize = view.getUint32(offset + 24, true);
+          const nameLength = view.getUint16(offset + 28, true), extraLength = view.getUint16(offset + 30, true), commentLength = view.getUint16(offset + 32, true);
+          const localOffset = view.getUint32(offset + 42, true), name = new TextDecoder().decode(bytes.subarray(offset + 46, offset + 46 + nameLength));
+          offset += 46 + nameLength + extraLength + commentLength;
+          if (flags & 1) throw new Error('不支援加密 ZIP');
+          if (!['project.json'].includes(name) && !name.startsWith('assets/')) continue;
+          totalUncompressedSize += uncompressedSize;
+          if (uncompressedSize > 0x6400000 || totalUncompressedSize > 0x20000000) throw new Error('ZIP 解壓縮後容量超出限制');
+          if (localOffset + 30 > bytes.length || view.getUint32(localOffset, true) !== 0x04034b50) throw new Error('ZIP 檔案資料格式無效');
+          const localNameLength = view.getUint16(localOffset + 26, true), localExtraLength = view.getUint16(localOffset + 28, true);
+          const dataOffset = localOffset + 30 + localNameLength + localExtraLength, compressed = bytes.subarray(dataOffset, dataOffset + compressedSize);
+          if (dataOffset + compressedSize > bytes.length) throw new Error('ZIP 檔案資料不完整');
+          let content;
+          if (method === 0) content = compressed.slice();
+          else if (method === 8 && typeof DecompressionStream !== 'undefined') {
+            const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+            const reader = stream.getReader(), chunks = [];
+            let size = 0;
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              size += value.length;
+              if (size > uncompressedSize || size > 0x6400000) {
+                await reader.cancel();
+                throw new Error('ZIP 解壓縮資料大小不符或超出限制');
+              }
+              chunks.push(value);
+            }
+            content = joinBytes(chunks);
+          } else throw new Error('ZIP 使用了此瀏覽器不支援的壓縮方式');
+          if (content.length !== uncompressedSize || crc32(content) !== checksum) throw new Error('ZIP 檔案校驗失敗');
+          files.set(name, content);
+        }
+        return files;
+      }
+      function bytesToDataUrl(bytes, mime) {
+        let binary = '';
+        for (let offset = 0; offset < bytes.length; offset += 0x8000) binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
+        return `data:${mime};base64,${btoa(binary)}`;
+      }
+      function restoreZipImages(project, files, imageMimes = {}) {
+        function restore(value) {
+          if (typeof value === 'string' && value.startsWith('zip:')) {
+            const path = value.slice(4), bytes = files.get(path);
+            if (!bytes) throw new Error(`ZIP 缺少圖片檔案：${path}`);
+            const extension = path.split('.').pop().toLowerCase();
+            const mime = imageMimes[path] || ({ jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml', avif: 'image/avif', bmp: 'image/bmp', tif: 'image/tiff', tiff: 'image/tiff', heic: 'image/heic', heif: 'image/heif', ico: 'image/x-icon' })[extension];
+            if (!mime) throw new Error(`不支援的圖片格式：${extension}`);
+            return bytesToDataUrl(bytes, mime);
+          }
+          if (Array.isArray(value)) return value.map(restore);
+          if (value && typeof value === 'object') Object.keys(value).forEach(key => { value[key] = restore(value[key]) });
+          return value;
+        }
+        return restore(project);
+      }
+      async function doExport(type) {
+        try {
+          if (type === 'markdown') download(exportMarkdown(), fileName('md'), 'text/markdown;charset=utf-8');
+          if (type === 'articleHtml') download(exportArticleHtml(), fileName('html'), 'text/html;charset=utf-8');
+          if (type === 'novelHtml') download(exportNovelHtml(), fileName('html'), 'text/html;charset=utf-8');
+          if (type === 'zip') download(createZip(projectZipSnapshot()), fileName('zip'), 'application/zip');
+          toast(type === 'zip' ? '完整專案 ZIP 已準備好下載。' : '作品已準備好下載。');
+        } catch (error) {
+          console.error('專案檔匯出失敗：', error);
+          toast(`無法匯出專案檔：${error.message || '請檢查專案素材及可用儲存空間。'}`);
+        }
+      }
+      function formatText(format) { const input = $('#articleBody'), scene = currentScene(), start = input.selectionStart, end = input.selectionEnd, selected = input.value.slice(start, end) || '文字', pairs = { bold: ['**', '**'], italic: ['*', '*'], underline: ['<u>', '</u>'], quote: ['> ', ''], h2: ['## ', ''], list: ['- ', ''] }, [before, after] = pairs[format]; let replacement; if (format === 'quote' || format === 'h2' || format === 'list') replacement = selected.split('\n').map(line => before + line).join('\n'); else replacement = before + selected + after; input.setRangeText(replacement, start, end, 'select'); input.focus(); if (scene) syncSceneText(scene, input.value); persist() }
+      function imageImport(files) { [...files].forEach(file => { if (!file.type.startsWith('image/')) return; const reader = new FileReader(); reader.onload = () => { state.assets.push({ name: file.name, description: '', tags: [], type: file.type, data: reader.result }); renderAssets(); renderBackgroundLibrary(); persist() }; reader.onerror = () => toast(`無法讀取 ${file.name}`); reader.readAsDataURL(file) }); if (files.length) toast('圖片匯入中；大型素材建議控制在 5 MB 以內。') }
+      async function importBackup(file) {
+        if (!window.confirm('匯入會取代目前裝置上的專案。建議先下載備份檔，確定要繼續嗎？')) return;
+        try {
+            let restored;
+            const signature = new Uint8Array(await file.slice(0, 4).arrayBuffer());
+            if (signature[0] === 0x50 && signature[1] === 0x4b) {
+              const files = await readZip(file), projectFile = files.get('project.json');
+              if (!projectFile) throw new Error('ZIP 內沒有 project.json');
+              const archive = JSON.parse(new TextDecoder().decode(projectFile));
+              restored = archive?.format === 'quillframe-project-zip-v1' ? restoreZipImages(archive.project, files, archive.imageMimes) : archive;
+            } else restored = JSON.parse(await file.text());
+            if (!restored || typeof restored.title !== 'string' || !Array.isArray(restored.scenes) || !restored.scenes.length || restored.scenes.some(scene => !scene || typeof scene !== 'object' || typeof scene.title !== 'string')) throw Error('格式不符');
+            state = { ...structuredClone(sample), ...restored, scenes: restored.scenes, assets: Array.isArray(restored.assets) ? restored.assets : [], logs: restored.logs && typeof restored.logs === 'object' ? restored.logs : {} };
+            delete state.google;
+            state.scenes.forEach((scene, index) => { scene.kind = scene.kind || 'chapter'; scene.parentId = scene.parentId || ''; scene.articleTitle = scene.articleTitle || (index === 0 ? state.title : scene.title); scene.articleSubtitle = scene.articleSubtitle || (index === 0 ? state.subtitle : scene.title); scene.articleBody = scene.articleBody ?? (index === 0 ? state.body : (scene.text || '')) });
+            persist();
+            render();
+            toast('完整專案檔已匯入。');
+        } catch (error) {
+          console.error('專案檔匯入失敗：', error);
+          toast(`無法匯入專案檔：${error.message || '格式無效，或 ZIP 圖片資料不完整。'}`);
+        }
+      }
+      applyTheme(document.documentElement.dataset.theme || 'light'); $('#themeToggle').addEventListener('click', () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
+      
+      $$('[data-editor-mode]').forEach(button => button.addEventListener('click', () => {
+        if (activePage !== 'write') switchPage('write');
+        setEditorMode(button.dataset.editorMode);
+      }));
+      $('#newSceneType').addEventListener('change', updateNodeEditor); $('#addScene').addEventListener('click', () => openNodeModal('chapter')); $('#confirmScene').addEventListener('click', createStoryNode); $('#sceneModal').addEventListener('click', event => { if (event.target.id === 'sceneModal') event.currentTarget.classList.remove('open') }); $('#cancelScene').addEventListener('click', () => $('#sceneModal').classList.remove('open'));
+      $('#articleTitle').addEventListener('input', event => { const scene = currentScene(); if (!scene) return; scene.articleTitle = event.target.value; state.title = event.target.value; persist() }); $('#articleSubtitle').addEventListener('input', event => { const scene = currentScene(); if (!scene) return; scene.articleSubtitle = event.target.value; state.subtitle = event.target.value; persist() }); $('#articleBody').addEventListener('input', event => { const scene = currentScene(); if (!scene) return; syncSceneText(scene, event.target.value, 'article'); persist() }); $('#sceneContent').addEventListener('input', event => { const scene = currentScene(); if (!scene) return; syncSceneText(scene, event.target.value, 'novel'); renderStoryNavigation(); persist() }); $('#activeNodeTitle').addEventListener('input', event => { const scene = currentScene(); if (!scene) return; scene.title = event.target.value; $('#mapPointTitle').value = scene.title; $('#editorCrumb').textContent = `${state.name}　/　${scene.title}`; document.querySelectorAll(`.map-node[data-scene-id="${scene.id}"] .map-label`).forEach(label => label.textContent = `${scene.kind === 'act' ? '幕' : '篇章'} · ${scene.title}`); persist() }); $('#activeNodeTitle').addEventListener('change', () => { const scene = currentScene(); if (scene && !scene.title.trim()) { scene.title = '未命名節點'; $('#activeNodeTitle').value = scene.title; $('#mapPointTitle').value = scene.title; renderScenes(); renderStoryNavigation() } persist() }); $('#mapPointTitle').addEventListener('input', event => { $('#activeNodeTitle').value = event.target.value; $('#activeNodeTitle').dispatchEvent(new Event('input')) }); $('#mapPointType').addEventListener('change', event => { const scene = currentScene(); if (!scene) return; if (event.target.value === 'act') { const chapters = state.scenes.filter(item => item.kind !== 'act' && item.id !== scene.id); if (!chapters.length) { event.target.value = 'chapter'; toast('請先新增一個篇章，才能將此節點設為幕。'); return } scene.kind = 'act'; scene.parentId = $('#mapPointParent').value || chapters[0].id } else { scene.kind = 'chapter'; scene.parentId = '' } render(); setStoryView('map'); persist() }); $('#mapPointParent').addEventListener('change', event => { const scene = currentScene(); if (scene && scene.kind === 'act') { scene.parentId = event.target.value; renderScenes(); renderStoryNavigation(); persist() } });
+      $$('[data-story-view]').forEach(button => button.addEventListener('click', () => setStoryView(button.dataset.storyView)));
+      $$('[data-format]').forEach(button => button.addEventListener('click', () => formatText(button.dataset.format)));
+      $('#fontSize').addEventListener('change', event => { state.fontSize = event.target.value; $('#articleBody').style.fontSize = `${state.fontSize}px`; persist() });
+      $('#projectName').addEventListener('input', event => { state.name = event.target.value; renderProjects(); const scene = currentScene(); $('#editorCrumb').textContent = scene ? `${state.name}　/　${scene.title}` : state.name; persist() });
+      $('#projectSelect').addEventListener('change', event => switchProject(event.target.value));
+      $('#addProject').addEventListener('click', createProject);
+      $('#deleteProject').addEventListener('click', () => requestDeleteProject());
+      $('#cancelDeleteProject').addEventListener('click', () => $('#deleteProjectModal').classList.remove('open'));
+      $('#confirmDeleteProject').addEventListener('click', () => {
+        const fromMobile = $('#deleteProjectModal').dataset.fromMobile === 'true';
+        $('#deleteProjectModal').classList.remove('open');
+        const previousId = activeProjectId;
+        deleteProject();
+        if (activeProjectId !== previousId && fromMobile) $('#projectModal').classList.remove('open');
+      });
+      $('#deleteProjectModal').addEventListener('click', event => {
+        if (event.target.id === 'deleteProjectModal') event.currentTarget.classList.remove('open');
+      });
+      $('#mobileProjectOpen').addEventListener('click', () => $('#projectModal').classList.add('open'));
+      $('#mobileCancelProject').addEventListener('click', () => $('#projectModal').classList.remove('open'));
+      $('#projectModal').addEventListener('click', event => { if (event.target.id === 'projectModal') event.currentTarget.classList.remove('open') });
+      $('#projectSelectMobile').addEventListener('change', event => { const selected = event.target.value; switchProject(selected); if (selected === activeProjectId) $('#projectModal').classList.remove('open') });
+      $('#mobileAddProject').addEventListener('click', () => { $('#projectModal').classList.remove('open'); createProject() });
+      $('#mobileDeleteProject').addEventListener('click', () => requestDeleteProject(true));
+      $('#stageNext').addEventListener('click', () => { const scene = currentScene(), fragments = sceneFragments(scene); if (fragments.length < 2) return; stageLineIndex = (stageLineIndex + 1) % fragments.length; renderStageDialogue(scene); updateRoleCast(scene) });
+      $('#hideNovelText').addEventListener('click', () => {
+        const input = $('#sceneContent'), start = input.selectionStart, end = input.selectionEnd;
+        if (start === end) return toast('請先選取要隱藏的文字。');
+        input.setRangeText(`[[hide]]${input.value.slice(start, end)}[[/hide]]`, start, end, 'select');
+        input.focus();
+        syncSceneText(currentScene(), input.value, 'novel');
+        persist();
+      });
+      $('#breakNovelText').addEventListener('click', () => {
+        const input = $('#sceneContent'), start = input.selectionStart;
+        input.setRangeText('[[break]]', start, start, 'end');
+        input.focus();
+        syncSceneText(currentScene(), input.value, 'novel');
+        persist();
+      });
+      $('#roleLibrarySelect').addEventListener('change', event => {
+        const selected = event.target.value, oldName = roleLibrarySelected;
+        const oldRole = roleEntry(oldName);
+        oldRole.summary = $('#roleSummaryInput').value;
+        oldRole.design = $('#roleDesignInput').value;
+        oldRole.personality = $('#rolePersonalityInput').value;
+        oldRole.background = $('#roleBackgroundInput').value;
+        const requestedName = $('#roleNameInput').value.trim();
+        if (requestedName && requestedName !== oldName && state.characters[requestedName]) {
+          toast('已有同名角色，請先儲存或更正目前角色名稱。');
+          renderRoleLibrary();
+          return;
+        }
+        if (requestedName && requestedName !== oldName) {
+          $('#roleLibrarySelect').value = oldName;
+          renameRole();
+        } else persist();
+        roleLibrarySelected = selected;
+        renderRoleLibrary();
+      });
+      $('#roleSummaryInput').addEventListener('input', updateRoleProfile);
+      $('#roleDesignInput').addEventListener('input', updateRoleProfile);
+      $('#rolePersonalityInput').addEventListener('input', updateRoleProfile);
+      $('#roleBackgroundInput').addEventListener('input', updateRoleProfile);
+      $('#saveRole').addEventListener('click', renameRole);
+      $('#newRole').addEventListener('click', createRole);
+      $('#deleteRole').addEventListener('click', deleteRole);
+      $('#renameRoleImage').addEventListener('click', () => {
+        if ($('#roleNameInput').value.trim() !== roleLibrarySelected) renameRole();
+        pendingImageRole = roleLibrarySelected;
+        $('#roleImageInput').click();
+      });
+      $('#removeRoleImage').addEventListener('click', () => {
+        const role = roleEntry(roleLibrarySelected);
+        delete role.data; delete role.type; delete role.imageName;
+        renderRoleLibrary(); updateNovel(); persist();
+      });
+      $('#roleImageInput').addEventListener('change', event => {
+        const [file] = event.target.files || [];
+        event.target.value = '';
+        if (!file || !pendingImageRole) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const role = roleEntry(pendingImageRole);
+          role.name = pendingImageRole;
+          role.imageName = file.name;
+          role.type = file.type;
+          role.data = reader.result;
+          roleLibrarySelected = pendingImageRole;
+          pendingImageRole = '';
+          renderRoleLibrary(); updateNovel(); persist();
+          toast('角色立繪已更新。');
+        };
+        reader.onerror = () => { pendingImageRole = ''; toast(`無法讀取 ${file.name}`) };
+        reader.readAsDataURL(file);
+      });
+      $('#saveInspiration').addEventListener('click', () => {
+        const text = $('#inspiration').value.trim();
+        if (!text) return toast('請先輸入靈感內容。');
+        const tags = [...new Set($('#inspirationTags').value.split(/[,，]/).map(tag => tag.trim().replace(/^#+/, '')).filter(Boolean))];
+        let note = inspirationEditingId
+          ? state.inspirationNotes.find(item => item.id === inspirationEditingId)
+          : null;
+        if (inspirationEditingId && (!note || inspirationEditingProjectId !== activeProjectId)) {
+          resetInspirationEditor();
+          return toast('找不到正在編輯的筆記，請重新輸入。');
+        }
+        if (!note) {
+          note = { id: projectId(), text, tags };
+          state.inspirationNotes.unshift(note);
+        } else {
+          note.text = text;
+          note.tags = tags;
+        }
+        resetInspirationEditor();
+        renderInspirationNotes();
+        persist();
+        toast('靈感筆記已儲存。');
+      });
+      $('#cancelInspirationEdit').addEventListener('click', resetInspirationEditor);
+      $('#inspirationSearch').addEventListener('input', renderInspirationNotes);
+      $('#dailyGoalInput').addEventListener('change', () => {
+        const goal = Number($('#dailyGoalInput').value);
+        if (!Number.isInteger(goal) || goal < 1 || goal > 1000000) {
+          renderStats();
+          return toast('每日目標請設定為 1 至 1,000,000 的整數。');
+        }
+        state.dailyGoal = goal;
+        renderStats();
+        persist();
+      });
+      $('#saveQuickInspiration').addEventListener('click', () => {
+        const text = $('#quickInspirationText').value.trim();
+        if (!text) return toast('請先輸入靈感內容。');
+        normalizeInspirationNotes();
+        const tags = [...new Set($('#quickInspirationTags').value.split(/[,，]/).map(tag => tag.trim().replace(/^#+/, '')).filter(Boolean))];
+        state.inspirationNotes.unshift({ id: projectId(), text, tags });
+        $('#quickInspirationText').value = '';
+        $('#quickInspirationTags').value = '';
+        renderInspirationNotes();
+        persist();
+        toast('靈感筆記已儲存。');
+      });
+      $('#openInspirationLibrary').addEventListener('click', () => switchPage('images'));
+      $('#assetSearch').addEventListener('input', renderAssets);
+      $('#checkinButton').addEventListener('click', checkin); $('#logCheckin').addEventListener('click', checkin);
+      $('#quickUpload').addEventListener('click', () => $('#imageInput').click()); $('#importButton').addEventListener('click', () => $('#imageInput').click()); $('#addBackgroundImage').addEventListener('click', () => $('#imageInput').click());
+      $('#dropZone').addEventListener('click', () => $('#imageInput').click());
+      $('#dropZone').addEventListener('dragover', event => { event.preventDefault(); event.currentTarget.classList.add('drag-over') });
+      $('#dropZone').addEventListener('dragleave', event => event.currentTarget.classList.remove('drag-over'));
+      $('#dropZone').addEventListener('drop', event => { event.preventDefault(); event.currentTarget.classList.remove('drag-over'); imageImport(event.dataTransfer.files) });
+      $('#imageInput').addEventListener('change', event => { imageImport(event.target.files); event.target.value = '' });
+      $('#mapBackgroundButton').addEventListener('click', () => $('#mapBackgroundInput').click());
+      $('#mapBackgroundInput').addEventListener('change', event => { const [file] = event.target.files || []; event.target.value = ''; if (!file) return; const reader = new FileReader(); reader.onload = () => { state.map.background = reader.result; state.map.backgroundName = file.name; renderStoryNavigation(); persist(); toast('地圖背景已更新。') }; reader.onerror = () => toast(`無法讀取 ${file.name}`); reader.readAsDataURL(file) });
+      $('#clearMapBackground').addEventListener('click', () => { state.map.background = ''; state.map.backgroundName = ''; renderStoryNavigation(); persist() });
+      $('#addChapterNode').addEventListener('click', () => openNodeModal('chapter')); $('#addActNode').addEventListener('click', () => openNodeModal('act'));
+      $('#deleteMapPoint').addEventListener('click', () => { const scene = currentScene(); if (scene) deleteStoryNode(scene.id) });
+      $('#clearLocal').addEventListener('click', () => { if (!window.confirm('確定清除此裝置的所有專案資料？此操作無法復原。')) return; clearTimeout(saveTimer); try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(PROJECTS_KEY); location.reload() } catch { toast('無法清除本機專案資料，請檢查瀏覽器儲存權限。') } });
+      $$('[data-page]').forEach(button => button.addEventListener('click', () => { const page = button.dataset.page; switchPage(page); if (page === 'write') setEditorMode('article') })); $('#exportTop').addEventListener('click', () => switchPage('export')); $('#projectExportTop').addEventListener('click', () => doExport('zip')); $$('[data-export]').forEach(button => button.addEventListener('click', () => doExport(button.dataset.export))); $('#importProject').addEventListener('click', () => $('#projectInput').click()); $('#projectInput').addEventListener('change', event => { const [file] = event.target.files || []; if (file) importBackup(file); event.target.value = ''; }); render(); persist();
+    })();
+  </script>
+</body>
+
+</html>
