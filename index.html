@@ -1503,6 +1503,30 @@
       max-width: 570px
     }
 
+    .cloud-auth-controls,
+    .cloud-project-controls {
+      display: grid;
+      gap: 10px;
+      max-width: 570px;
+      margin-top: 12px
+    }
+
+    .cloud-project-controls {
+      border-top: 1px solid var(--line);
+      padding-top: 12px
+    }
+
+    .cloud-button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px
+    }
+
+    #cloudStatus,
+    #cloudAccountStatus {
+      min-height: 1em
+    }
+
     .settings-block input {
       width: min(100%, 460px);
       padding: 10px;
@@ -1664,6 +1688,10 @@
     }
 
     .hidden {
+      display: none !important
+    }
+
+    [hidden] {
       display: none !important
     }
 
@@ -3603,8 +3631,47 @@
             </div>
           </div>
           <div class="settings-block">
+            <h3>雲端同步</h3>
+            <p>登入 Supabase 後，可將目前專案同步到雲端並在其他裝置載入。網站仍會先儲存到此裝置；雲端同步需要 HTTPS 網址（或 localhost）。請先在 Supabase 建立專案、執行設定 SQL，並將網站網址加入 Auth 的允許網址。</p>
+            <p><a href="supabase/setup.sql" download>下載 Supabase 資料庫設定 SQL</a></p>
+            <label class="login-field-label">Supabase Project URL
+              <input id="cloudProjectUrl" type="url" autocomplete="url" placeholder="https://your-project.supabase.co">
+            </label>
+            <label class="login-field-label">Publishable／anon key（公開用戶端金鑰，不可填 service_role） 
+              <input id="cloudPublishableKey" type="text" autocomplete="off" spellcheck="false" placeholder="sb_publishable_... 或 anon key">
+            </label>
+            <button class="top-action" id="saveCloudConfig" type="button">儲存雲端連線設定</button>
+            <p id="cloudStatus" role="status" aria-live="polite">尚未設定雲端服務。</p>
+            <div class="cloud-auth-controls">
+              <label class="login-field-label">電子郵件
+                <input id="cloudEmail" type="email" autocomplete="email">
+              </label>
+              <label class="login-field-label">密碼
+                <input id="cloudPassword" type="password" autocomplete="current-password">
+              </label>
+              <div class="cloud-button-row">
+                <button class="top-action sync-btn" id="cloudSignIn" type="button">登入</button>
+                <button class="top-action" id="cloudSignUp" type="button">建立帳戶</button>
+                <button class="top-action" id="cloudSignOut" type="button" hidden>登出</button>
+              </div>
+              <p id="cloudAccountStatus"></p>
+              <div class="cloud-project-controls">
+                <button class="top-action sync-btn" id="cloudSyncCurrent" type="button">上傳／同步目前專案</button>
+                <label class="login-field-label">雲端專案
+                  <select id="cloudProjectList"></select>
+                </label>
+                <div class="cloud-button-row">
+                  <button class="top-action" id="cloudRefreshProjects" type="button">重新載入清單</button>
+                  <button class="top-action" id="cloudLoadProject" type="button">載入至此裝置</button>
+                  <button class="top-action danger-action" id="cloudDeleteProject" type="button">刪除雲端副本</button>
+                  <button class="top-action danger-action" id="cloudOverwriteCurrent" type="button" hidden>以此裝置版本覆蓋雲端</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="settings-block">
             <h3>本機儲存</h3>
-            <p>所有專案都會分別自動儲存在目前瀏覽器。跨裝置移轉請使用「匯出作品」中的完整 ZIP 專案，並在另一裝置匯入。</p><button class="top-action"
+            <p>專案會先自動儲存在目前瀏覽器。登入雲端並上傳後，可在其他裝置載入及同步；完整 ZIP 備份仍可在「匯出作品」下載。</p><button class="top-action"
               id="clearLocal">清除本機專案資料</button>
           </div>
           <div class="settings-block">
@@ -3641,7 +3708,7 @@
         <h2 id="deleteProjectTitle">確認刪除專案？</h2>
         <p id="deleteProjectDescription">即將永久刪除以下專案及其本機內容：</p>
         <strong class="delete-project-name" id="deleteProjectName"></strong>
-        <p class="delete-warning">此操作無法復原。若要保留內容，請先下載完整專案 ZIP 備份。</p>
+        <p class="delete-warning">此操作無法復原。若要保留內容，請先下載完整專案 ZIP 備份。若專案已同步至雲端，請到設定另行刪除雲端副本。</p>
         <div class="modal-actions">
           <button class="top-action" id="cancelDeleteProject" type="button">取消</button>
           <button class="top-action danger-action" id="confirmDeleteProject" type="button">刪除專案</button>
@@ -3666,6 +3733,11 @@
     (() => {
       const STORAGE_KEY = 'quillframe-project-v1';
       const PROJECTS_KEY = 'quillframe-projects-v1';
+      const CLOUD_CONFIG_KEY = 'quillframe-cloud-config-v1';
+      const CLOUD_BUCKET = 'quillframe-assets';
+      let cloudConfig = null, cloudClient = null, cloudUser = null, cloudSdkPromise = null, cloudSyncTimer = null, cloudAuthSubscription = null, cloudConflictProjectId = null;
+      let cloudSyncQueue = Promise.resolve();
+      try { cloudConfig = JSON.parse(localStorage.getItem(CLOUD_CONFIG_KEY) || 'null') } catch { cloudConfig = null }
       const sample = { name: '雨停之前', title: '雨落在沒有人的月台', subtitle: '第一章．潮汐的方向', body: '雨是從傍晚開始下的。\n\n我在月台等了很久，久到廣播裡的列車時刻變得像一首陌生的歌。月台另一端的自動販賣機亮著，藍白色的光映在水窪裡，像一小塊被遺忘的天空。\n\n「你也在等雨停嗎？」\n\n回頭時，少女站在雨線之外，手裡握著一把沒有打開的傘。她的制服袖口沾著水珠，胸前的名牌空白一片。\n\n我想起小時候母親說過，每一場雨都會替某個人保守一個秘密。那時我不相信。現在我仍然不相信，只是忽然不知道該怎麼回答她。\n\n「我在等一班不會來的車。」我說。\n\n她笑了，月台的燈也在這時一盞一盞亮起。', scenes: [{ id: 's1', title: '第一章｜潮汐的方向', text: '雨是從傍晚開始下的。我在月台等了很久，久到廣播裡的列車時刻變得像一首陌生的歌。\n\n「你也在等雨停嗎？」\n\n少女站在雨線之外，手裡握著一把沒有打開的傘。她的制服袖口沾著水珠，胸前的名牌空白一片。\n\n我想起小時候母親說過，每一場雨都會替某個人保守一個秘密。那時我不相信。現在我仍然不相信，只是忽然不知道該怎麼回答她。\n\n「我在等一班不會來的車。」我說。\n\n她笑了，月台的燈也在這時一盞一盞亮起。', character: '悠', background: '' }, { id: 's2', title: '第二章｜未寄出的信', text: '她把一封折得整整齊齊的信遞給我。信封上沒有地址，只有一個被雨暈開的日期。\n\n「如果你能回到那一天，會想對誰說什麼？」', character: '夏', background: '' }, { id: 's3', title: '終章｜海的另一邊', text: '雨停了。遠處的海面映出第一道晨光，我們都沒有再問那班列車會不會來。', character: '悠', background: '' }], assets: [], logs: {}, activeScene: 's1' };
       const $ = selector => document.querySelector(selector), $$ = selector => [...document.querySelectorAll(selector)];
       const paletteIds = ['sage', 'aqua', 'ember', 'khaki', 'mono'];
@@ -3715,6 +3787,20 @@
         '卡其色': 'Khaki', '沉穩大地色與柔和金棕': 'Earthy tones with soft golden brown',
         '純白灰調': 'Monochrome', '簡潔的黑、白與中性灰': 'Clean white, black, and neutral gray',
         '編輯介面配色': 'Editor color palette', '本機儲存': 'Local Storage',
+        '雲端同步': 'Cloud Sync',
+        '登入 Supabase 後，可將目前專案同步到雲端並在其他裝置載入。網站仍會先儲存到此裝置；雲端同步需要 HTTPS 網址（或 localhost）。請先在 Supabase 建立專案、執行設定 SQL，並將網站網址加入 Auth 的允許網址。': 'Sign in to Supabase to sync the current project and load it on another device. Projects are still saved locally first. Cloud sync requires HTTPS (or localhost). Create a Supabase project, run the setup SQL, and add this site URL to the Auth allowed URLs.',
+        '下載 Supabase 資料庫設定 SQL': 'Download Supabase database setup SQL',
+        'Publishable／anon key（公開用戶端金鑰，不可填 service_role）': 'Publishable / anon key (public client key; never use service_role)',
+        '儲存雲端連線設定': 'Save Cloud Connection',
+        '尚未設定雲端服務。': 'Cloud service is not configured.',
+        '請以 HTTPS 網站或 localhost 開啟此應用程式，file:// 無法進行雲端登入。': 'Open this app on an HTTPS site or localhost. Cloud sign-in is unavailable from file://.',
+        '專案資料已刪除，但部分圖片未能清理；可在 Supabase Storage 手動移除。': 'Project data was deleted, but some images could not be removed. You can delete them manually in Supabase Storage.',
+        '此操作無法復原。若要保留內容，請先下載完整專案 ZIP 備份。若專案已同步至雲端，請到設定另行刪除雲端副本。': 'This cannot be undone. Download a complete project ZIP first if you want to keep this data. If the project was synced to the cloud, delete its cloud copy separately in Settings.',
+        '專案會先自動儲存在目前瀏覽器。登入雲端並上傳後，可在其他裝置載入及同步；完整 ZIP 備份仍可在「匯出作品」下載。': 'Projects are saved on this browser first. Sign in and upload to load and sync them on other devices; complete ZIP backups remain available under Export.',
+        '電子郵件': 'Email', '密碼': 'Password', '登入': 'Sign In', '建立帳戶': 'Create Account', '登出': 'Sign Out',
+        '上傳／同步目前專案': 'Upload / Sync Current Project', '雲端專案': 'Cloud Projects',
+        '重新載入清單': 'Refresh List', '載入至此裝置': 'Load to This Device',
+        '刪除雲端副本': 'Delete Cloud Copy', '以此裝置版本覆蓋雲端': 'Overwrite Cloud with This Device',
         '所有專案都會分別自動儲存在目前瀏覽器。跨裝置移轉請使用「匯出作品」中的完整 ZIP 專案，並在另一裝置匯入。': 'Projects are saved separately in this browser. To transfer between devices, export the complete project ZIP and import it on the other device.',
         '清除本機專案資料': 'Clear Local Project Data', '每日寫作目標': 'Daily Writing Goal',
         '目前目標為': 'Current goal:', '字；每日完成寫作後會記錄日期與當日字數。': 'words; your writing date and word count are recorded after you write each day.',
@@ -3859,11 +3945,19 @@
         if (match) return `${leading}${match[1]} and ${match[2]} differ. Replace ${match[4]} with ${match[3]} and switch editing modes?${trailing}`;
         match = text.match(/^已切換至「(.+)」。$/);
         if (match) return `${leading}Switched to “${match[1]}”.${trailing}`;
+        match = text.match(/^要將「(.+)」上傳至目前登入的雲端帳戶嗎？$/);
+        if (match) return `${leading}Upload “${match[1]}” to the currently signed-in cloud account?${trailing}`;
+        match = text.match(/^載入「(.+)」會取代此裝置上同 ID 的專案資料。請先確認本機內容已保存；仍要繼續嗎？$/);
+        if (match) return `${leading}Loading “${match[1]}” will replace the same-ID project on this device. Make sure local changes are saved. Continue?${trailing}`;
+        match = text.match(/^確定永久刪除雲端專案「(.+)」及其圖片嗎？此操作無法復原。$/);
+        if (match) return `${leading}Permanently delete cloud project “${match[1]}” and its images? This cannot be undone.${trailing}`;
+        match = text.match(/^雲端版本將被「(.+)」取代。請先確認此裝置保留的是正確版本；確定覆蓋嗎？$/);
+        if (match) return `${leading}The cloud version will be replaced by “${match[1]}”. Make sure this device has the correct version. Overwrite?${trailing}`;
         return value;
       }
       function confirmAction(message) { return window.confirm(translateText(message)); }
       function isUserContentNode(node) {
-        return Boolean(node.parentElement?.closest('.scene-title, .crumb, .inspiration-note-content, .asset-library-description, .background-asset-description, .role-directory-name, .map-label, .stage-dialogue p, .stage-dialogue strong, .fragment-source-text, .fragment-dialogue-text'));
+        return Boolean(node.parentElement?.closest('.cloud-project-name, .scene-title, .crumb, .inspiration-note-content, .asset-library-description, .background-asset-description, .role-directory-name, .map-label, .stage-dialogue p, .stage-dialogue strong, .fragment-source-text, .fragment-dialogue-text'));
       }
       function translateTextNode(node) {
         if (isUserContentNode(node)) return;
@@ -3970,7 +4064,355 @@
         localStorage.setItem(PROJECTS_KEY, JSON.stringify({ activeId: activeProjectId, projects }));
         localStorage.removeItem(STORAGE_KEY);
       }
-      function persist() { clearTimeout(saveTimer); $('#saveStatus').textContent = '儲存中…'; saveTimer = setTimeout(() => { try { saveLibraryNow(); $('#saveStatus').textContent = '已儲存至此裝置'; renderStats() } catch { $('#saveStatus').textContent = '儲存空間不足'; toast('瀏覽器儲存空間不足，請匯出備份或移除大型圖片。') } }, 220) }
+      function setLocalizedText(element, zhText, enText) {
+        element.textContent = language === 'en' ? (enText || translations[zhText] || zhText) : zhText;
+        if (element.firstChild?.nodeType === Node.TEXT_NODE) originalText.set(element.firstChild, zhText);
+      }
+      function setCloudStatus(zhText, enText) { setLocalizedText($('#cloudStatus'), zhText, enText) }
+      function setCloudAccountStatus(zhText, enText) { setLocalizedText($('#cloudAccountStatus'), zhText, enText) }
+      function reportCloudError(zhPrefix, enPrefix, error) {
+        const detail = error?.message || String(error);
+        console.error(`${zhPrefix}:`, error);
+        setCloudStatus(`${zhPrefix}：${detail}`, `${enPrefix}: ${detail}`);
+      }
+      function handleCloudActionError(zhPrefix, enPrefix, error, projectId = activeProjectId) {
+        if (error instanceof CloudRevisionConflict) {
+          cloudConflictProjectId = projectId;
+          $('#cloudOverwriteCurrent').hidden = false;
+          setCloudStatus('雲端版本較新；請先載入雲端版本，或確認後覆蓋。', 'The cloud version is newer. Load it or explicitly overwrite it.');
+          return;
+        }
+        reportCloudError(zhPrefix, enPrefix, error);
+      }
+      function updateCloudControls() {
+        const signedIn = Boolean(cloudUser);
+        $('#cloudSignIn').hidden = signedIn;
+        $('#cloudSignUp').hidden = signedIn;
+        $('#cloudSignOut').hidden = !signedIn;
+        $('.cloud-project-controls').hidden = !signedIn;
+        if (signedIn) setCloudAccountStatus(`已登入：${cloudUser.email || cloudUser.id}`, `Signed in: ${cloudUser.email || cloudUser.id}`);
+        else setCloudAccountStatus('尚未登入。', 'Not signed in.');
+      }
+      function renderCloudProjectList(items = []) {
+        const select = $('#cloudProjectList');
+        select.replaceChildren();
+        if (!items.length) {
+          const option = new Option('尚未載入雲端專案', '');
+          setLocalizedText(option, '尚未載入雲端專案', 'No cloud projects loaded');
+          select.append(option);
+          select.disabled = true;
+        } else {
+          items.forEach(item => {
+            const option = new Option(item.name || '未命名專案', item.id);
+            option.className = 'cloud-project-name';
+            select.append(option);
+          });
+          select.disabled = false;
+        }
+      }
+      function validateCloudConfig(url, key) {
+        let parsed;
+        try { parsed = new URL(url) } catch { throw new Error('請輸入有效的 Supabase Project URL。') }
+        if (parsed.protocol !== 'https:' && !(parsed.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(parsed.hostname))) {
+          throw new Error('雲端登入只支援 HTTPS 網址（本機開發可用 localhost）。');
+        }
+        if (!key) throw new Error('請輸入 Supabase publishable key 或 anon key。');
+        if (key.toLowerCase().includes('service_role')) throw new Error('不可在瀏覽器使用 service_role 私密金鑰。');
+        const token = key.split('.');
+        if (token.length === 3) {
+          try {
+            const payload = JSON.parse(atob(token[1].replace(/-/g, '+').replace(/_/g, '/')));
+            if (payload.role === 'service_role') throw new Error('不可在瀏覽器使用 service_role 私密金鑰。');
+          } catch (error) {
+            if (error.message.includes('service_role')) throw error;
+          }
+        }
+        return { url: parsed.origin, key };
+      }
+      function loadSupabaseSdk() {
+        if (window.supabase?.createClient) return Promise.resolve(window.supabase);
+        if (cloudSdkPromise) return cloudSdkPromise;
+        cloudSdkPromise = new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js';
+          script.async = true;
+          script.onload = () => window.supabase?.createClient
+            ? resolve(window.supabase)
+            : reject(new Error('Supabase SDK 載入後未提供用戶端。'));
+          script.onerror = () => reject(new Error('無法載入 Supabase SDK，請檢查網絡或 CDN 連線。'));
+          document.head.append(script);
+        }).catch(error => {
+          cloudSdkPromise = null;
+          throw error;
+        });
+        return cloudSdkPromise;
+      }
+      async function initializeCloudClient() {
+        updateCloudControls();
+        if (!cloudConfig?.url || !cloudConfig?.key) {
+          setCloudStatus('尚未設定雲端服務。');
+          return;
+        }
+        if (location.protocol === 'file:') {
+          setCloudStatus('請以 HTTPS 網站或 localhost 開啟此應用程式，file:// 無法進行雲端登入。');
+          return;
+        }
+        const config = validateCloudConfig(cloudConfig.url, cloudConfig.key);
+        setCloudStatus('正在連線 Supabase…', 'Connecting to Supabase…');
+        const sdk = await loadSupabaseSdk();
+        cloudAuthSubscription?.unsubscribe();
+        const storageKey = `quillframe-${new URL(config.url).hostname}-auth`;
+        cloudClient = sdk.createClient(config.url, config.key, {
+          auth: { storageKey, persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+        });
+        const authResult = cloudClient.auth.onAuthStateChange((event, session) => {
+          cloudUser = session?.user || null;
+          updateCloudControls();
+          if (event === 'SIGNED_IN' && cloudUser) setTimeout(() => refreshCloudProjects().catch(error => reportCloudError('無法載入雲端專案清單', 'Could not load cloud projects', error)), 0);
+          if (event === 'SIGNED_OUT') renderCloudProjectList();
+        });
+        cloudAuthSubscription = authResult.data.subscription;
+        const { data, error } = await cloudClient.auth.getSession();
+        if (error) throw error;
+        cloudUser = data.session?.user || null;
+        updateCloudControls();
+        if (cloudUser) await refreshCloudProjects();
+        else setCloudStatus('連線設定已儲存，請登入或建立帳戶。', 'Connection saved. Sign in or create an account.');
+      }
+      async function refreshCloudProjects() {
+        if (!cloudClient || !cloudUser) throw new Error('請先設定雲端服務並登入。');
+        const { data, error } = await cloudClient.from('quillframe_projects')
+          .select('id, name, revision, updated_at')
+          .order('updated_at', { ascending: false });
+        if (error) throw error;
+        renderCloudProjectList(data || []);
+        setCloudStatus(data?.length ? `已載入 ${data.length} 個雲端專案。` : '帳戶尚無雲端專案；可上傳目前專案。',
+          data?.length ? `Loaded ${data.length} cloud project(s).` : 'No cloud projects yet. Upload the current project to get started.');
+        return data || [];
+      }
+      async function imageDataUrlToBlob(dataUrl) {
+        const response = await fetch(dataUrl);
+        if (!response.ok) throw new Error('無法讀取專案中的圖片資料。');
+        return response.blob();
+      }
+      async function cloudEncodeValue(value, projectId, imagePaths) {
+        if (typeof value === 'string' && value.startsWith('data:image/')) {
+          if (imagePaths.has(value)) return { __quillframe_cloud_image__: imagePaths.get(value) };
+          const blob = await imageDataUrlToBlob(value);
+          const bytes = await blob.arrayBuffer();
+          const digest = await crypto.subtle.digest('SHA-256', bytes);
+          const hash = [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+          const subtype = (blob.type.split('/')[1] || 'png').split('+')[0].replace(/[^a-z0-9]/gi, '') || 'png';
+          const extension = subtype === 'jpeg' ? 'jpg' : subtype;
+          const path = `${cloudUser.id}/${projectId}/${hash}.${extension}`;
+          const { error } = await cloudClient.storage.from(CLOUD_BUCKET).upload(path, blob, {
+            contentType: blob.type || 'image/png',
+            upsert: true
+          });
+          if (error) throw error;
+          imagePaths.set(value, path);
+          return { __quillframe_cloud_image__: path };
+        }
+        if (Array.isArray(value)) {
+          const encoded = [];
+          for (const item of value) encoded.push(await cloudEncodeValue(item, projectId, imagePaths));
+          return encoded;
+        }
+        if (value && typeof value === 'object') {
+          const encoded = {};
+          for (const [key, item] of Object.entries(value)) encoded[key] = await cloudEncodeValue(item, projectId, imagePaths);
+          return encoded;
+        }
+        return value;
+      }
+      function blobToDataUrl(blob) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(reader.error || new Error('無法讀取雲端圖片。'));
+          reader.readAsDataURL(blob);
+        });
+      }
+      async function cloudDecodeValue(value) {
+        if (Array.isArray(value)) return Promise.all(value.map(cloudDecodeValue));
+        if (value && typeof value === 'object') {
+          const keys = Object.keys(value);
+          if (keys.length === 1 && typeof value.__quillframe_cloud_image__ === 'string') {
+            const { data, error } = await cloudClient.storage.from(CLOUD_BUCKET).download(value.__quillframe_cloud_image__);
+            if (error) throw error;
+            return blobToDataUrl(data);
+          }
+          const decoded = {};
+          for (const [key, item] of Object.entries(value)) decoded[key] = await cloudDecodeValue(item);
+          return decoded;
+        }
+        return value;
+      }
+      class CloudRevisionConflict extends Error {
+        constructor() { super('雲端專案已在其他裝置更新。請載入雲端版本，或確認後以本機版本覆蓋。'); this.name = 'CloudRevisionConflict' }
+      }
+      async function saveCloudProject(project, force = false) {
+        if (!cloudClient || !cloudUser) throw new Error('請先登入 Supabase。');
+        const encodedData = await cloudEncodeValue(structuredClone(project.data), project.id, new Map());
+        const payload = { name: project.data.name || project.name || '未命名專案', data: encodedData, updated_at: new Date().toISOString() };
+        let result;
+        if (project.cloudOwnerId === cloudUser.id && Number.isInteger(project.cloudRevision)) {
+          let expectedRevision = project.cloudRevision;
+          if (force) {
+            const current = await cloudClient.from('quillframe_projects').select('revision').eq('id', project.id).maybeSingle();
+            if (current.error) throw current.error;
+            if (!current.data) throw new Error('雲端副本已不存在，請重新上傳此專案。');
+            expectedRevision = current.data.revision;
+          }
+          result = await cloudClient.from('quillframe_projects')
+            .update({ ...payload, revision: expectedRevision + 1 })
+            .eq('id', project.id).eq('revision', expectedRevision)
+            .select('revision, updated_at').maybeSingle();
+          if (result.error) throw result.error;
+          if (!result.data) throw new CloudRevisionConflict();
+        } else {
+          result = await cloudClient.from('quillframe_projects')
+            .insert({ id: project.id, user_id: cloudUser.id, ...payload, revision: 1 })
+            .select('revision, updated_at').single();
+          if (result.error?.code === '23505') throw new CloudRevisionConflict();
+          if (result.error) throw result.error;
+        }
+        project.cloudOwnerId = cloudUser.id;
+        project.cloudRevision = result.data.revision;
+        project.cloudUpdatedAt = result.data.updated_at;
+        saveLibraryNow();
+        $('#cloudOverwriteCurrent').hidden = true;
+        if (cloudConflictProjectId === project.id) cloudConflictProjectId = null;
+        setCloudStatus(`「${project.data.name || '未命名專案'}」已同步至雲端。`,
+          `“${project.data.name || 'Untitled Project'}” synced to the cloud.`);
+      }
+      function scheduleCloudSync(id = activeProjectId) {
+        if (!cloudUser || !cloudClient) return;
+        clearTimeout(cloudSyncTimer);
+        cloudSyncTimer = setTimeout(() => {
+          const project = projects.find(item => item.id === id);
+          if (!project || project.cloudOwnerId !== cloudUser.id || !Number.isInteger(project.cloudRevision)) return;
+          cloudSyncQueue = cloudSyncQueue.then(() => saveCloudProject(project)).catch(error => {
+            if (error instanceof CloudRevisionConflict) {
+              cloudConflictProjectId = id;
+              $('#cloudOverwriteCurrent').hidden = false;
+              setCloudStatus('雲端版本較新；請先載入雲端版本，或確認後覆蓋。', 'The cloud version is newer. Load it or explicitly overwrite it.');
+            } else reportCloudError('本機已保存，但雲端同步失敗', 'Saved locally, but cloud sync failed', error);
+          });
+        }, 900);
+      }
+      async function uploadCurrentProject() {
+        if (!cloudUser) throw new Error('請先登入 Supabase。');
+        saveLibraryNow();
+        const project = projects.find(item => item.id === activeProjectId);
+        if (!project) throw new Error('找不到目前專案。');
+        if (project.cloudOwnerId === cloudUser.id && Number.isInteger(project.cloudRevision)) {
+          await saveCloudProject(project);
+          return;
+        }
+        if (!confirmAction(`要將「${state.name || '未命名專案'}」上傳至目前登入的雲端帳戶嗎？`)) return;
+        await saveCloudProject(project);
+        await refreshCloudProjects();
+        setCloudStatus(`「${project.data.name || '未命名專案'}」已同步至雲端。`,
+          `“${project.data.name || 'Untitled Project'}” synced to the cloud.`);
+      }
+      async function loadSelectedCloudProject() {
+        if (!cloudClient || !cloudUser) throw new Error('請先登入 Supabase。');
+        const id = $('#cloudProjectList').value;
+        if (!id) throw new Error('請先選擇雲端專案。');
+        const { data: remote, error } = await cloudClient.from('quillframe_projects')
+          .select('id, user_id, name, data, revision, updated_at').eq('id', id).single();
+        if (error) throw error;
+        const existing = projects.find(project => project.id === remote.id);
+        if (existing && !confirmAction(`載入「${remote.name}」會取代此裝置上同 ID 的專案資料。請先確認本機內容已保存；仍要繼續嗎？`)) return;
+        const restoredData = await cloudDecodeValue(remote.data);
+        if (!restoredData || !Array.isArray(restoredData.scenes)) throw new Error('雲端專案資料格式無效。');
+        const nextProjects = projects.slice();
+        const localProject = {
+          ...(existing || {}),
+          id: remote.id,
+          name: remote.name,
+          data: restoredData,
+          cloudOwnerId: remote.user_id,
+          cloudRevision: remote.revision,
+          cloudUpdatedAt: remote.updated_at
+        };
+        const existingIndex = nextProjects.findIndex(project => project.id === remote.id);
+        if (existingIndex >= 0) nextProjects[existingIndex] = localProject;
+        else nextProjects.push(localProject);
+        const previousProjects = projects, previousId = activeProjectId, previousState = state;
+        projects = nextProjects;
+        activeProjectId = remote.id;
+        state = structuredClone(restoredData);
+        render();
+        if (!persistImmediately()) {
+          projects = previousProjects;
+          activeProjectId = previousId;
+          state = previousState;
+          render();
+          throw new Error('此專案無法完整保存到本機儲存空間；雲端原檔未受影響。');
+        }
+        renderCloudProjectList(await refreshCloudProjects());
+        setCloudStatus(`已載入「${remote.name}」至此裝置，後續修改會自動同步。`,
+          `Loaded “${remote.name}” on this device. Future edits will sync automatically.`);
+      }
+      async function removeCloudProjectFiles(projectId) {
+        const prefix = `${cloudUser.id}/${projectId}`;
+        const paths = [];
+        for (let offset = 0; ; offset += 1000) {
+          const { data, error } = await cloudClient.storage.from(CLOUD_BUCKET)
+            .list(prefix, { limit: 1000, offset });
+          if (error) throw error;
+          paths.push(...(data || []).filter(file => file.id).map(file => `${prefix}/${file.name}`));
+          if (!data || data.length < 1000) break;
+        }
+        for (let index = 0; index < paths.length; index += 100) {
+          const { error } = await cloudClient.storage.from(CLOUD_BUCKET).remove(paths.slice(index, index + 100));
+          if (error) throw error;
+        }
+      }
+      async function deleteSelectedCloudProject() {
+        if (!cloudClient || !cloudUser) throw new Error('請先登入 Supabase。');
+        const id = $('#cloudProjectList').value;
+        const option = $('#cloudProjectList').selectedOptions[0];
+        if (!id || !option) throw new Error('請先選擇雲端專案。');
+        if (!confirmAction(`確定永久刪除雲端專案「${option.textContent}」及其圖片嗎？此操作無法復原。`)) return;
+        const { data, error } = await cloudClient.from('quillframe_projects')
+          .delete().eq('id', id).select('id').maybeSingle();
+        if (error) throw error;
+        if (!data) throw new Error('找不到雲端專案，可能已由其他裝置刪除。');
+        const local = projects.find(project => project.id === id && project.cloudOwnerId === cloudUser.id);
+        if (local) {
+          delete local.cloudOwnerId;
+          delete local.cloudRevision;
+          delete local.cloudUpdatedAt;
+          saveLibraryNow();
+        }
+        try {
+          await removeCloudProjectFiles(id);
+        } catch (error) {
+          console.error('雲端專案圖片清理失敗：', error);
+          setCloudStatus('專案資料已刪除，但部分圖片未能清理；可在 Supabase Storage 手動移除。');
+          await refreshCloudProjects();
+          return;
+        }
+        await refreshCloudProjects();
+      }
+      function persist() {
+        clearTimeout(saveTimer);
+        $('#saveStatus').textContent = '儲存中…';
+        saveTimer = setTimeout(() => {
+          try {
+            saveLibraryNow();
+            $('#saveStatus').textContent = '已儲存至此裝置';
+            renderStats();
+            scheduleCloudSync();
+          } catch {
+            $('#saveStatus').textContent = '儲存空間不足';
+            toast('瀏覽器儲存空間不足，請匯出備份或移除大型圖片。');
+          }
+        }, 220);
+      }
       function toast(message) { const element = $('#toast'); element.textContent = translateText(message); element.classList.add('show'); clearTimeout(toast.timer); toast.timer = setTimeout(() => element.classList.remove('show'), 2600) }
       function words(text) { const value = text.trim(); if (!value) return 0; const chinese = (value.match(/[\u3400-\u9fff\uf900-\ufaff]/g) || []).length; const latin = (value.match(/[A-Za-z0-9]+(?:['’-][A-Za-z0-9]+)*/g) || []).length; return chinese + latin }
       function localDay(date = new Date()) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` }
@@ -4381,7 +4823,12 @@
       }
       function persistImmediately() {
         clearTimeout(saveTimer);
-        try { saveLibraryNow(); $('#saveStatus').textContent = '已儲存至此裝置'; return true }
+        try {
+          saveLibraryNow();
+          $('#saveStatus').textContent = '已儲存至此裝置';
+          scheduleCloudSync(activeProjectId);
+          return true;
+        }
         catch { $('#saveStatus').textContent = '儲存空間不足'; toast('無法儲存專案，請匯出備份或移除大型圖片。'); return false }
       }
       function switchProject(id) {
@@ -5387,8 +5834,91 @@
       $('#clearMapBackground').addEventListener('click', () => { state.map.background = ''; state.map.backgroundName = ''; renderStoryNavigation(); persist() });
       $('#addChapterNode').addEventListener('click', () => openNodeModal('chapter')); $('#addActNode').addEventListener('click', () => openNodeModal('act'));
       $('#deleteMapPoint').addEventListener('click', () => { const scene = currentScene(); if (scene) deleteStoryNode(scene.id) });
+      if (cloudConfig?.url && cloudConfig?.key) {
+        $('#cloudProjectUrl').value = cloudConfig.url;
+        $('#cloudPublishableKey').value = cloudConfig.key;
+      }
+      $('#saveCloudConfig').addEventListener('click', async () => {
+        try {
+          cloudConfig = validateCloudConfig($('#cloudProjectUrl').value.trim(), $('#cloudPublishableKey').value.trim());
+          localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(cloudConfig));
+          await initializeCloudClient();
+        } catch (error) {
+          reportCloudError('無法設定雲端連線', 'Could not configure cloud connection', error);
+        }
+      });
+      $('#cloudSignIn').addEventListener('click', async () => {
+        try {
+          if (!cloudClient) throw new Error('請先儲存有效的 Supabase 連線設定。');
+          const email = $('#cloudEmail').value.trim(), password = $('#cloudPassword').value;
+          if (!email || !password) throw new Error('請輸入電子郵件和密碼。');
+          const { error } = await cloudClient.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          $('#cloudPassword').value = '';
+          setCloudStatus('登入成功。', 'Signed in successfully.');
+        } catch (error) {
+          reportCloudError('登入失敗', 'Sign-in failed', error);
+        }
+      });
+      $('#cloudSignUp').addEventListener('click', async () => {
+        try {
+          if (!cloudClient) throw new Error('請先儲存有效的 Supabase 連線設定。');
+          const email = $('#cloudEmail').value.trim(), password = $('#cloudPassword').value;
+          if (!email || !password) throw new Error('請輸入電子郵件和密碼。');
+          const { data, error } = await cloudClient.auth.signUp({ email, password });
+          if (error) throw error;
+          $('#cloudPassword').value = '';
+          if (data.session) setCloudStatus('帳戶已建立並登入。', 'Account created and signed in.');
+          else setCloudStatus('帳戶已建立；請先檢查電子郵件並完成驗證，再登入。', 'Account created. Check your email to confirm it, then sign in.');
+        } catch (error) {
+          reportCloudError('建立帳戶失敗', 'Could not create account', error);
+        }
+      });
+      $('#cloudSignOut').addEventListener('click', async () => {
+        try {
+          const { error } = await cloudClient.auth.signOut();
+          if (error) throw error;
+          cloudUser = null;
+          updateCloudControls();
+          renderCloudProjectList();
+          setCloudStatus('已登出；本機專案不受影響。', 'Signed out. Local projects are unchanged.');
+        } catch (error) {
+          reportCloudError('登出失敗', 'Sign-out failed', error);
+        }
+      });
+      $('#cloudRefreshProjects').addEventListener('click', async () => {
+        try { await refreshCloudProjects() }
+        catch (error) { reportCloudError('無法載入雲端專案清單', 'Could not load cloud projects', error) }
+      });
+      $('#cloudSyncCurrent').addEventListener('click', async () => {
+        try { await uploadCurrentProject() }
+        catch (error) { handleCloudActionError('無法同步目前專案', 'Could not sync current project', error) }
+      });
+      $('#cloudLoadProject').addEventListener('click', async () => {
+        try { await loadSelectedCloudProject() }
+        catch (error) { reportCloudError('無法載入雲端專案', 'Could not load cloud project', error) }
+      });
+      $('#cloudDeleteProject').addEventListener('click', async () => {
+        try { await deleteSelectedCloudProject() }
+        catch (error) { reportCloudError('無法刪除雲端專案', 'Could not delete cloud project', error) }
+      });
+      $('#cloudOverwriteCurrent').addEventListener('click', async () => {
+        const conflictId = cloudConflictProjectId || activeProjectId;
+        const project = projects.find(item => item.id === conflictId);
+        if (!project || !confirmAction(`雲端版本將被「${project.data.name || '未命名專案'}」取代。請先確認此裝置保留的是正確版本；確定覆蓋嗎？`)) return;
+        try {
+          saveLibraryNow();
+          await saveCloudProject(project, true);
+          await refreshCloudProjects();
+          setCloudStatus(`「${project.data.name || '未命名專案'}」已同步至雲端。`,
+            `“${project.data.name || 'Untitled Project'}” synced to the cloud.`);
+        } catch (error) {
+          handleCloudActionError('無法覆蓋雲端版本', 'Could not overwrite cloud version', error, conflictId);
+        }
+      });
       $('#clearLocal').addEventListener('click', () => { if (!confirmAction('確定清除此裝置的所有專案資料？此操作無法復原。')) return; clearTimeout(saveTimer); try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(PROJECTS_KEY); location.reload() } catch { toast('無法清除本機專案資料，請檢查瀏覽器儲存權限。') } });
-      $$('[data-page]').forEach(button => button.addEventListener('click', () => { const page = button.dataset.page; switchPage(page); if (page === 'write') setEditorMode('article') })); $('#exportTop').addEventListener('click', () => switchPage('export')); $('#projectExportTop').addEventListener('click', () => doExport('zip')); $$('[data-export]').forEach(button => button.addEventListener('click', () => doExport(button.dataset.export))); $('#importProject').addEventListener('click', () => $('#projectInput').click()); $('#projectInput').addEventListener('change', event => { const [file] = event.target.files || []; if (file) importBackup(file); event.target.value = ''; }); render(); persist(); applyLanguage(language);
+      $$('[data-page]').forEach(button => button.addEventListener('click', () => { const page = button.dataset.page; switchPage(page); if (page === 'write') setEditorMode('article') })); $('#exportTop').addEventListener('click', () => switchPage('export')); $('#projectExportTop').addEventListener('click', () => doExport('zip')); $$('[data-export]').forEach(button => button.addEventListener('click', () => doExport(button.dataset.export))); $('#importProject').addEventListener('click', () => $('#projectInput').click()); $('#projectInput').addEventListener('change', event => { const [file] = event.target.files || []; if (file) importBackup(file); event.target.value = ''; }); render(); persist(); applyLanguage(language); renderCloudProjectList(); updateCloudControls();
+      if (cloudConfig?.url && cloudConfig?.key) initializeCloudClient().catch(error => reportCloudError('無法初始化雲端服務', 'Could not initialize cloud service', error));
       const languageObserver = new MutationObserver(records => records.forEach(record => {
         if (record.type === 'characterData') translateTextNode(record.target);
         else if (record.type === 'attributes') translateAttribute(record.target, record.attributeName);
