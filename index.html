@@ -25,7 +25,6 @@
       --serif: 'Noto Serif TC', Georgia, serif;
       --sans: 'DM Sans', 'Noto Sans TC', sans-serif;
       --mono: 'DM Mono', monospace;
-      --rail: 72px;
       --side: 240px
     }
 
@@ -55,14 +54,14 @@
     button:focus-visible,
     input:focus-visible,
     textarea:focus-visible {
-      outline: 2px solid #6b9c79;
+      outline: 2px solid var(--green);
       outline-offset: 2px
     }
 
     .app {
       min-height: 100dvh;
       display: grid;
-      grid-template-columns: var(--rail) var(--side) minmax(0, 1fr);
+      grid-template-columns: var(--side) minmax(0, 1fr);
       grid-template-rows: 62px 1fr
     }
 
@@ -73,12 +72,12 @@
       gap: 18px;
       padding: 0 23px;
       border-bottom: 1px solid var(--line);
-      background: rgba(255, 254, 250, .88);
+      background: var(--white);
       z-index: 4
     }
 
     .brand {
-      width: var(--rail);
+      width: var(--side);
       display: flex;
       align-items: center;
       gap: 8px;
@@ -92,7 +91,7 @@
       width: 28px;
       border-radius: 8px;
       background: var(--green);
-      color: white;
+      color: var(--paper);
       display: grid;
       place-items: center;
       font: 18px var(--serif)
@@ -121,12 +120,11 @@
       width: 7px;
       height: 7px;
       border-radius: 50%;
-      background: #62a57b
+      background: var(--green)
     }
 
     .top-action,
     .icon-btn,
-    .rail-btn,
     .format-btn,
     .scene-row button,
     .tool-btn {
@@ -138,12 +136,12 @@
       padding: 8px 12px;
       border: 1px solid var(--line);
       border-radius: 7px;
-      background: #fffefa;
+      background: var(--white);
       font-size: 12px
     }
 
     .top-action:hover {
-      border-color: #9ba99a
+      border-color: var(--green)
     }
 
     .sync-btn {
@@ -153,7 +151,7 @@
     }
 
     .sync-btn:hover {
-      background: #1f4c39
+      background: var(--green)
     }
 
     .avatar {
@@ -167,61 +165,12 @@
       font-size: 11px
     }
 
-    .rail {
-      grid-row: 2;
-      grid-column: 1;
-      background: #ecebe5;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      padding: 15px 0
-    }
-
-    .rail-btn {
-      width: 42px;
-      height: 42px;
-      border-radius: 10px;
-      display: grid;
-      place-items: center;
-      color: #777970;
-      font-size: 18px;
-      position: relative
-    }
-
-    .rail-btn:hover {
-      background: #fffefa;
-      color: var(--ink)
-    }
-
-    .rail-btn.active {
-      background: var(--green-soft);
-      color: var(--green)
-    }
-
-    .rail-btn[title]:hover:after {
-      content: attr(title);
-      position: absolute;
-      left: 50px;
-      background: #252724;
-      color: #fff;
-      padding: 6px 9px;
-      border-radius: 5px;
-      font: 11px var(--sans);
-      white-space: nowrap;
-      z-index: 8
-    }
-
-    .rail-spacer {
-      flex: 1
-    }
-
     .sidebar {
-      grid-column: 2;
+      grid-column: 1;
       grid-row: 2;
       border-right: 1px solid var(--line);
       padding: 25px 18px;
-      background: #f8f7f2;
+      background: var(--white);
       overflow-y: auto
     }
 
@@ -249,7 +198,7 @@
       width: 32px;
       height: 37px;
       border-radius: 4px;
-      background: linear-gradient(145deg, #9fb59b, #345b4c);
+      background: linear-gradient(145deg, var(--green-soft), var(--green));
       position: relative;
       overflow: hidden
     }
@@ -300,7 +249,7 @@
 
     .project-controls button:hover,
     .novel-markers button:hover {
-      border-color: #9ba99a
+      border-color: var(--green)
     }
 
     .side-nav {
@@ -318,7 +267,7 @@
       align-items: center;
       gap: 10px;
       padding: 9px 10px;
-      color: #65675f;
+      color: var(--muted);
       border-radius: 6px;
       font-size: 12px;
       cursor: pointer
@@ -366,18 +315,18 @@
       gap: 8px;
       padding: 8px;
       border-radius: 6px;
-      color: #676960;
+      color: var(--muted);
       cursor: pointer
     }
 
     .scene-row.active {
-      background: #eaece4;
+      background: var(--green-soft);
       color: var(--ink)
     }
 
     .scene-num {
       font: 10px var(--mono);
-      color: #9a9c93
+      color: var(--muted)
     }
 
     .scene-title {
@@ -421,7 +370,7 @@
 
     .streak span {
       font-size: 11px;
-      color: #66685f
+      color: var(--muted)
     }
 
     .week {
@@ -450,14 +399,14 @@
       border-radius: 50%;
       display: grid;
       place-items: center;
-      background: #e9e8e1;
-      color: #9b9d94;
+      background: var(--line);
+      color: var(--muted);
       font: 9px var(--mono)
     }
 
     .day.done {
-      background: #558366;
-      color: white
+      background: var(--green);
+      color: var(--paper)
     }
 
     .day.today {
@@ -466,7 +415,7 @@
     }
 
     .workspace {
-      grid-column: 3;
+      grid-column: 2;
       grid-row: 2;
       min-width: 0;
       overflow: auto
@@ -516,7 +465,7 @@
       width: 100%;
       border: 0;
       background: transparent;
-      color: #878980;
+      color: var(--muted);
       font: 13px var(--serif);
       padding: 9px 0 19px
     }
@@ -539,12 +488,12 @@
       width: 31px;
       height: 30px;
       border-radius: 5px;
-      color: #66685f;
+      color: var(--muted);
       font-size: 13px
     }
 
     .format-btn:hover {
-      background: #e9e8e1
+      background: var(--green-soft)
     }
 
     .format-btn b {
@@ -570,7 +519,7 @@
       resize: vertical;
       border: 0;
       background: transparent;
-      color: #383a35;
+      color: var(--ink);
       font: 15px/2 var(--serif);
       padding: 0;
       letter-spacing: .15px
@@ -581,7 +530,7 @@
     }
 
     .editor::placeholder {
-      color: #b0b1a8
+      color: var(--muted)
     }
 
     .focus-footer {
@@ -597,9 +546,9 @@
       display: flex;
       align-items: center;
       gap: 7px;
-      border: 1px solid #bdd0bf;
+      border: 1px solid var(--line);
       border-radius: 6px;
-      background: #eef4ec;
+      background: var(--green-soft);
       color: var(--green);
       padding: 8px 11px;
       font-size: 11px
@@ -607,14 +556,14 @@
 
     .checkin-button.checked {
       background: var(--green);
-      color: white;
+      color: var(--paper);
       border-color: var(--green)
     }
 
     .right-panel {
       border-left: 1px solid var(--line);
       padding: 28px 19px;
-      background: rgba(255, 254, 250, .42)
+      background: var(--white)
     }
 
     .panel-title {
@@ -657,7 +606,7 @@
 
     .progress {
       height: 5px;
-      background: #e9e8e1;
+      background: var(--line);
       border-radius: 8px;
       margin: 12px 0 8px;
       overflow: hidden
@@ -666,7 +615,7 @@
     .progress span {
       height: 100%;
       display: block;
-      background: #5e956e;
+      background: var(--green);
       border-radius: 8px;
       transition: width .25s
     }
@@ -764,8 +713,8 @@
       padding: 3px 6px;
       border: 1px solid #d5dfd4;
       border-radius: 10px;
-      background: #eef4ec;
-      color: #486b50;
+      background: var(--green-soft);
+      color: var(--green);
       font: 9px var(--sans);
       cursor: pointer
     }
@@ -1740,7 +1689,6 @@
 
     @media(max-width:760px) {
       :root {
-        --rail: 0px;
         --side: 0px
       }
 
@@ -1794,10 +1742,6 @@
       .avatar {
         width: 26px;
         height: 26px
-      }
-
-      .rail {
-        display: none
       }
 
       .sidebar {
@@ -2059,7 +2003,8 @@
       padding: 18px;
       border: 1px solid var(--line);
       border-radius: 9px;
-      background: var(--paper)
+      background: var(--paper);
+      container-type: inline-size
     }
 
     .editor-layout[data-mode="roles"] .role-library-screen {
@@ -2256,7 +2201,8 @@
       display: grid;
       grid-template-columns: minmax(150px, 220px) minmax(0, 1fr);
       gap: 14px;
-      align-items: start
+      align-items: start;
+      min-width: 0
     }
 
     .role-directory,
@@ -2329,6 +2275,7 @@
 
     .role-profile-header {
       align-items: stretch;
+      min-width: 0;
       padding-bottom: 13px;
       border-bottom: 1px solid var(--line)
     }
@@ -2357,6 +2304,7 @@
     .role-profile-title {
       display: grid;
       flex: 1;
+      min-width: 0;
       align-content: center;
       gap: 10px
     }
@@ -2384,7 +2332,8 @@
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 9px;
-      margin: 12px 0
+      margin: 12px 0;
+      min-width: 0
     }
 
     .role-profile-section {
@@ -2435,13 +2384,9 @@
       border-top: 1px solid var(--line)
     }
 
-    @media(max-width:680px) {
-      .role-library-screen {
-        padding: 11px
-      }
-
+    @container (max-width: 680px) {
       .role-library-layout {
-        grid-template-columns: 1fr
+        grid-template-columns: minmax(0, 1fr)
       }
 
       .role-directory {
@@ -2459,18 +2404,28 @@
         max-width: 48%
       }
 
+      .role-profile-sections {
+        grid-template-columns: minmax(0, 1fr)
+      }
+
+      .role-profile-section:last-child {
+        grid-column: auto
+      }
+    }
+
+    @media(max-width:680px) {
+      .role-library-screen {
+        padding: 11px
+      }
+
       .role-profile-portrait {
         width: 82px;
         min-height: 100px;
         flex-basis: 82px
       }
 
-      .role-profile-sections {
-        grid-template-columns: 1fr
-      }
-
-      .role-profile-section:last-child {
-        grid-column: auto
+      .role-profile-header {
+        flex-wrap: wrap
       }
     }
   </style>
@@ -2730,23 +2685,115 @@
       --blue: #8ab4ca
     }
 
+    :root[data-palette="aqua"][data-theme="light"] {
+      --paper: #edf7f7;
+      --white: #fbffff;
+      --ink: #172d30;
+      --muted: #647d80;
+      --line: #cddfe0;
+      --green: #187b82;
+      --green-soft: #d9eff0;
+      --orange: #c96e51;
+      --blue: #347e98
+    }
+
+    :root[data-palette="aqua"][data-theme="dark"] {
+      --paper: #101719;
+      --white: #1a2325;
+      --ink: #e5f1f0;
+      --muted: #a3b8bb;
+      --line: #334144;
+      --green: #74d4d7;
+      --green-soft: #233a3c;
+      --orange: #f0a07e;
+      --blue: #89c8e3
+    }
+
+    :root[data-palette="ember"][data-theme="light"] {
+      --paper: #fff4ed;
+      --white: #fffaf7;
+      --ink: #33211e;
+      --muted: #8a6c64;
+      --line: #ecd7cf;
+      --green: #b94135;
+      --green-soft: #f8ded5;
+      --orange: #d86c32;
+      --blue: #6989a0
+    }
+
+    :root[data-palette="ember"][data-theme="dark"] {
+      --paper: #1d1514;
+      --white: #2a1e1b;
+      --ink: #f6e8df;
+      --muted: #c6a9a0;
+      --line: #49332f;
+      --green: #ff8e72;
+      --green-soft: #492c27;
+      --orange: #ffae67;
+      --blue: #90b4c3
+    }
+
+    :root[data-palette="khaki"][data-theme="light"] {
+      --paper: #f5f0e2;
+      --white: #fffcf4;
+      --ink: #322d20;
+      --muted: #80775f;
+      --line: #e2dac7;
+      --green: #79652f;
+      --green-soft: #ece3ce;
+      --orange: #b98245;
+      --blue: #687b73
+    }
+
+    :root[data-palette="khaki"][data-theme="dark"] {
+      --paper: #1d1b16;
+      --white: #29261e;
+      --ink: #f1ead7;
+      --muted: #b9ae91;
+      --line: #494434;
+      --green: #d1b46c;
+      --green-soft: #3d3829;
+      --orange: #e3a15e;
+      --blue: #a2c0b3
+    }
+
+    :root[data-palette="mono"][data-theme="light"] {
+      --paper: #f7f7f7;
+      --white: #ffffff;
+      --ink: #222222;
+      --muted: #737373;
+      --line: #dddddd;
+      --green: #555555;
+      --green-soft: #eaeaea;
+      --orange: #777777;
+      --blue: #888888
+    }
+
+    :root[data-palette="mono"][data-theme="dark"] {
+      --paper: #141414;
+      --white: #202020;
+      --ink: #f0f0f0;
+      --muted: #aaaaaa;
+      --line: #3c3c3c;
+      --green: #d0d0d0;
+      --green-soft: #303030;
+      --orange: #b0b0b0;
+      --blue: #9c9c9c
+    }
+
     :root[data-theme="dark"] body {
       background: var(--paper);
       color: var(--ink)
     }
 
     :root[data-theme="dark"] .topbar {
-      background: rgba(34, 39, 36, .96);
+      background: var(--white);
       border-color: var(--line)
-    }
-
-    :root[data-theme="dark"] .rail {
-      background: #202522
     }
 
     :root[data-theme="dark"] .sidebar,
     :root[data-theme="dark"] .right-panel {
-      background: #1d211e;
+      background: var(--white);
       border-color: var(--line)
     }
 
@@ -2768,16 +2815,16 @@
 
     :root[data-theme="dark"] .top-action,
     :root[data-theme="dark"] .select-input {
-      background: #292f2b;
-      border-color: #444c45;
+      background: var(--white);
+      border-color: var(--line);
       color: var(--ink)
     }
 
     :root[data-theme="dark"] .sync-btn,
     :root[data-theme="dark"] .checkin-button.checked {
-      background: #477854;
-      border-color: #477854;
-      color: #fff
+      background: var(--green);
+      border-color: var(--green);
+      color: var(--paper)
     }
 
     :root[data-theme="dark"] .project-name,
@@ -2789,38 +2836,29 @@
 
     :root[data-theme="dark"] input::placeholder,
     :root[data-theme="dark"] textarea::placeholder {
-      color: #899188
+      color: var(--muted)
     }
 
     :root[data-theme="dark"] .editor {
-      color: #e1e3dd
+      color: var(--ink)
     }
 
     :root[data-theme="dark"] .subtitle-input {
-      color: #b4bab1
+      color: var(--muted)
     }
 
     :root[data-theme="dark"] .scene-row.active {
-      background: #2a312c;
+      background: var(--green-soft);
       color: var(--ink)
     }
 
     :root[data-theme="dark"] .nav-item {
-      color: #b2b8b0
+      color: var(--muted)
     }
 
     :root[data-theme="dark"] .nav-item.active {
-      background: #293b2e;
-      color: #a4d3aa
-    }
-
-    :root[data-theme="dark"] .rail-btn {
-      color: #a9b0a7
-    }
-
-    :root[data-theme="dark"] .rail-btn.active {
-      background: #293b2e;
-      color: #a4d3aa
+      background: var(--green-soft);
+      color: var(--green)
     }
 
     :root[data-theme="dark"] .prompt-card {
@@ -2846,14 +2884,14 @@
     }
 
     :root[data-theme="dark"] .notice {
-      background: #29382d;
-      color: #c4dfc7
+      background: var(--green-soft);
+      color: var(--green)
     }
 
     :root[data-theme="dark"] .import-drop {
-      background: #222824;
-      border-color: #4a554b;
-      color: #b4bbb2
+      background: var(--white);
+      border-color: var(--line);
+      color: var(--muted)
     }
 
     :root[data-theme="dark"] .import-drop strong {
@@ -2861,7 +2899,7 @@
     }
 
     :root[data-theme="dark"] .calendar {
-      background: #222724;
+      background: var(--white);
       border-color: var(--line)
     }
 
@@ -2870,34 +2908,34 @@
     }
 
     :root[data-theme="dark"] .calendar .weekday {
-      background: #292f2b;
-      color: #aeb5ab
+      background: var(--paper);
+      color: var(--muted)
     }
 
     :root[data-theme="dark"] .cal-day {
-      color: #c0c6bd
+      color: var(--ink)
     }
 
     :root[data-theme="dark"] .cal-day.selected {
-      background: #2a3d30
+      background: var(--green-soft)
     }
 
     :root[data-theme="dark"] .progress {
-      background: #39413b
+      background: var(--line)
     }
 
     :root[data-theme="dark"] .day {
-      background: #343a35;
-      color: #adb4aa
+      background: var(--white);
+      color: var(--muted)
     }
 
     :root[data-theme="dark"] .day.done {
-      background: #578866;
-      color: white
+      background: var(--green);
+      color: var(--paper)
     }
 
     :root[data-theme="dark"] .timeline-list {
-      border-color: #566257
+      border-color: var(--line)
     }
 
     :root[data-theme="dark"] .timeline-node:before {
@@ -2909,22 +2947,22 @@
     }
 
     :root[data-theme="dark"] .map-board:not(.has-background) {
-      background-color: #28322c;
-      background-image: linear-gradient(30deg, #354239 12%, transparent 12.5%, transparent 87%, #354239 87.5%, #354239), linear-gradient(150deg, #354239 12%, transparent 12.5%, transparent 87%, #354239 87.5%, #354239), linear-gradient(30deg, #354239 12%, transparent 12.5%, transparent 87%, #354239 87.5%, #354239), linear-gradient(150deg, #354239 12%, transparent 12.5%, transparent 87%, #354239 87.5%, #354239)
+      background-color: var(--white);
+      background-image: linear-gradient(30deg, var(--green-soft) 12%, transparent 12.5%, transparent 87%, var(--green-soft) 87.5%, var(--green-soft)), linear-gradient(150deg, var(--green-soft) 12%, transparent 12.5%, transparent 87%, var(--green-soft) 87.5%, var(--green-soft)), linear-gradient(30deg, var(--green-soft) 12%, transparent 12.5%, transparent 87%, var(--green-soft) 87.5%, var(--green-soft)), linear-gradient(150deg, var(--green-soft) 12%, transparent 12.5%, transparent 87%, var(--green-soft) 87.5%, var(--green-soft))
     }
 
     :root[data-theme="dark"] .map-label {
-      background: #202622eF;
-      color: #edf0e9
+      background: var(--white);
+      color: var(--ink)
     }
 
     :root[data-theme="dark"] .map-hint {
-      background: #202622eF;
-      color: #ced4ca
+      background: var(--white);
+      color: var(--muted)
     }
 
     :root[data-theme="dark"] .mobile-tabs {
-      background: #222724;
+      background: var(--white);
       border-color: var(--line)
     }
 
@@ -2976,7 +3014,7 @@
     }
 
     .theme-switch input:checked {
-      background: #477854
+      background: var(--green)
     }
 
     .theme-switch input:checked:before {
@@ -3001,6 +3039,80 @@
 
     .theme-toggle:hover {
       border-color: var(--green)
+    }
+
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 10px;
+      margin-top: 12px
+    }
+
+    .palette-option {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      gap: 11px;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--white);
+      color: var(--ink);
+      text-align: left
+    }
+
+    .palette-option:hover {
+      border-color: var(--green)
+    }
+
+    .palette-option.active {
+      border-color: var(--green);
+      box-shadow: inset 0 0 0 1px var(--green)
+    }
+
+    .palette-swatches {
+      display: flex;
+      flex: 0 0 auto;
+      gap: 3px
+    }
+
+    .palette-swatches span {
+      width: 14px;
+      height: 28px;
+      border: 1px solid #0002;
+      border-radius: 5px
+    }
+
+    .palette-option[data-palette="sage"] .palette-swatches span:nth-child(1) { background: #f4f3ee }
+    .palette-option[data-palette="sage"] .palette-swatches span:nth-child(2) { background: #285f48 }
+    .palette-option[data-palette="sage"] .palette-swatches span:nth-child(3) { background: #181b19 }
+    .palette-option[data-palette="aqua"] .palette-swatches span:nth-child(1) { background: #edf7f7 }
+    .palette-option[data-palette="aqua"] .palette-swatches span:nth-child(2) { background: #187b82 }
+    .palette-option[data-palette="aqua"] .palette-swatches span:nth-child(3) { background: #101719 }
+    .palette-option[data-palette="ember"] .palette-swatches span:nth-child(1) { background: #fff4ed }
+    .palette-option[data-palette="ember"] .palette-swatches span:nth-child(2) { background: #b94135 }
+    .palette-option[data-palette="ember"] .palette-swatches span:nth-child(3) { background: #1d1514 }
+    .palette-option[data-palette="khaki"] .palette-swatches span:nth-child(1) { background: #f5f0e2 }
+    .palette-option[data-palette="khaki"] .palette-swatches span:nth-child(2) { background: #79652f }
+    .palette-option[data-palette="khaki"] .palette-swatches span:nth-child(3) { background: #1d1b16 }
+    .palette-option[data-palette="mono"] .palette-swatches span:nth-child(1) { background: #fff }
+    .palette-option[data-palette="mono"] .palette-swatches span:nth-child(2) { background: #777 }
+    .palette-option[data-palette="mono"] .palette-swatches span:nth-child(3) { background: #141414 }
+
+    .palette-option-copy {
+      display: grid;
+      min-width: 0;
+      gap: 3px
+    }
+
+    .palette-option-copy strong {
+      font-size: 11px
+    }
+
+    .palette-option-copy small {
+      color: var(--muted);
+      font-size: 9px;
+      line-height: 1.4
     }
   </style>
   <style>
@@ -3160,7 +3272,7 @@
       }
     }
   </style>
-  <script>try { if (localStorage.getItem('quillframe-theme') === 'dark') document.documentElement.dataset.theme = 'dark' } catch { }</script>
+  <script>try { if (localStorage.getItem('quillframe-theme') === 'dark') document.documentElement.dataset.theme = 'dark'; const palette = localStorage.getItem('quillframe-palette'); if (['sage', 'aqua', 'ember', 'khaki', 'mono'].includes(palette)) document.documentElement.dataset.palette = palette } catch { }</script>
 </head>
 
 <body>
@@ -3174,11 +3286,6 @@
       <button class="theme-toggle" id="themeToggle" type="button" aria-label="切換黑夜模式" title="切換黑夜模式">☾</button><button
         class="top-action" id="exportTop">匯出</button><button class="top-action sync-btn" id="projectExportTop">下載專案 ZIP</button>
     </header>
-    <aside class="rail">
-      <button class="rail-btn active" data-page="write" title="文章">✎</button><button class="rail-btn" data-page="images"
-        title="素材庫">▧</button><button class="rail-btn" data-page="export" title="匯出作品">⇧</button>
-      <div class="rail-spacer"></div><button class="rail-btn" data-page="settings" title="設定">⚙</button>
-    </aside>
     <aside class="sidebar">
       <p class="side-label">目前專案</p>
       <div class="project-switch">
@@ -3194,6 +3301,7 @@
         <button class="nav-item" data-editor-mode="backgrounds" type="button"><span class="nav-icon">▧</span>背景圖片庫</button>
         <button class="nav-item" data-page="images" type="button"><span class="nav-icon">▧</span>素材庫</button>
         <button class="nav-item" data-page="export" type="button"><span class="nav-icon">⇧</span>匯出作品</button>
+        <button class="nav-item" data-page="settings" type="button"><span class="nav-icon">⚙</span>設定</button>
       </nav>
       <div class="scene-head">
         <p class="side-label">篇章與幕</p><button class="add-scene" id="addScene" title="新增篇章或幕">＋</button>
@@ -3446,13 +3554,39 @@
             </div>
           </div>
           <div class="settings-block">
+            <h3>編輯介面主題</h3>
+            <p>選擇介面配色，再用頂端的月亮／太陽按鈕切換淺色或深色模式。主題會儲存在此裝置。</p>
+            <div class="palette-grid" role="group" aria-label="編輯介面配色">
+              <button class="palette-option" data-palette="sage" type="button" aria-pressed="false">
+                <span class="palette-swatches" aria-hidden="true"><span></span><span></span><span></span></span>
+                <span class="palette-option-copy"><strong>原始綠灰</strong><small>Quillframe 經典配色</small></span>
+              </button>
+              <button class="palette-option" data-palette="aqua" type="button" aria-pressed="false">
+                <span class="palette-swatches" aria-hidden="true"><span></span><span></span><span></span></span>
+                <span class="palette-option-copy"><strong>水色與黑色</strong><small>清透水色搭配深黑灰</small></span>
+              </button>
+              <button class="palette-option" data-palette="ember" type="button" aria-pressed="false">
+                <span class="palette-swatches" aria-hidden="true"><span></span><span></span><span></span></span>
+                <span class="palette-option-copy"><strong>紅色與橙色</strong><small>暖色紙感與紅橙重點色</small></span>
+              </button>
+              <button class="palette-option" data-palette="khaki" type="button" aria-pressed="false">
+                <span class="palette-swatches" aria-hidden="true"><span></span><span></span><span></span></span>
+                <span class="palette-option-copy"><strong>卡其色</strong><small>沉穩大地色與柔和金棕</small></span>
+              </button>
+              <button class="palette-option" data-palette="mono" type="button" aria-pressed="false">
+                <span class="palette-swatches" aria-hidden="true"><span></span><span></span><span></span></span>
+                <span class="palette-option-copy"><strong>純白灰調</strong><small>簡潔的黑、白與中性灰</small></span>
+              </button>
+            </div>
+          </div>
+          <div class="settings-block">
             <h3>本機儲存</h3>
             <p>所有專案都會分別自動儲存在目前瀏覽器。跨裝置移轉請使用「匯出作品」中的完整 ZIP 專案，並在另一裝置匯入。</p><button class="top-action"
               id="clearLocal">清除本機專案資料</button>
           </div>
           <div class="settings-block">
             <h3>每日寫作目標</h3>
-            <p>目前目標為 500 字；每日完成寫作後會記錄日期與當日字數。</p>
+            <p>目前目標為 <span id="settingsDailyGoal">500</span> 字；每日完成寫作後會記錄日期與當日字數。</p>
           </div>
         </div>
       </section>
@@ -3510,7 +3644,31 @@
       const STORAGE_KEY = 'quillframe-project-v1';
       const PROJECTS_KEY = 'quillframe-projects-v1';
       const sample = { name: '雨停之前', title: '雨落在沒有人的月台', subtitle: '第一章．潮汐的方向', body: '雨是從傍晚開始下的。\n\n我在月台等了很久，久到廣播裡的列車時刻變得像一首陌生的歌。月台另一端的自動販賣機亮著，藍白色的光映在水窪裡，像一小塊被遺忘的天空。\n\n「你也在等雨停嗎？」\n\n回頭時，少女站在雨線之外，手裡握著一把沒有打開的傘。她的制服袖口沾著水珠，胸前的名牌空白一片。\n\n我想起小時候母親說過，每一場雨都會替某個人保守一個秘密。那時我不相信。現在我仍然不相信，只是忽然不知道該怎麼回答她。\n\n「我在等一班不會來的車。」我說。\n\n她笑了，月台的燈也在這時一盞一盞亮起。', scenes: [{ id: 's1', title: '第一章｜潮汐的方向', text: '雨是從傍晚開始下的。我在月台等了很久，久到廣播裡的列車時刻變得像一首陌生的歌。\n\n「你也在等雨停嗎？」\n\n少女站在雨線之外，手裡握著一把沒有打開的傘。她的制服袖口沾著水珠，胸前的名牌空白一片。\n\n我想起小時候母親說過，每一場雨都會替某個人保守一個秘密。那時我不相信。現在我仍然不相信，只是忽然不知道該怎麼回答她。\n\n「我在等一班不會來的車。」我說。\n\n她笑了，月台的燈也在這時一盞一盞亮起。', character: '悠', background: '' }, { id: 's2', title: '第二章｜未寄出的信', text: '她把一封折得整整齊齊的信遞給我。信封上沒有地址，只有一個被雨暈開的日期。\n\n「如果你能回到那一天，會想對誰說什麼？」', character: '夏', background: '' }, { id: 's3', title: '終章｜海的另一邊', text: '雨停了。遠處的海面映出第一道晨光，我們都沒有再問那班列車會不會來。', character: '悠', background: '' }], assets: [], logs: {}, activeScene: 's1' };
-      const $ = selector => document.querySelector(selector), $$ = selector => [...document.querySelectorAll(selector)]; function applyTheme(theme) { const dark = theme === 'dark'; document.documentElement.dataset.theme = dark ? 'dark' : 'light'; $('#themeToggle').textContent = dark ? '☀' : '☾'; $('#themeToggle').setAttribute('aria-label', dark ? '切換日間模式' : '切換黑夜模式'); $('#themeToggle').title = dark ? '切換日間模式' : '切換黑夜模式'; document.querySelector('meta[name="theme-color"]').content = dark ? '#181b19' : '#f4f3ee'; try { localStorage.setItem('quillframe-theme', dark ? 'dark' : 'light') } catch { } }
+      const $ = selector => document.querySelector(selector), $$ = selector => [...document.querySelectorAll(selector)];
+      const paletteIds = ['sage', 'aqua', 'ember', 'khaki', 'mono'];
+      function updateThemeColor() {
+        document.querySelector('meta[name="theme-color"]').content = getComputedStyle(document.documentElement).getPropertyValue('--paper').trim();
+      }
+      function applyTheme(theme) {
+        const dark = theme === 'dark';
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        $('#themeToggle').textContent = dark ? '☀' : '☾';
+        $('#themeToggle').setAttribute('aria-label', dark ? '切換淺色模式' : '切換深色模式');
+        $('#themeToggle').title = dark ? '切換淺色模式' : '切換深色模式';
+        updateThemeColor();
+        try { localStorage.setItem('quillframe-theme', dark ? 'dark' : 'light') } catch { }
+      }
+      function applyPalette(palette) {
+        const selected = paletteIds.includes(palette) ? palette : 'sage';
+        document.documentElement.dataset.palette = selected;
+        $$('.palette-option').forEach(button => {
+          const active = button.dataset.palette === selected;
+          button.classList.toggle('active', active);
+          button.setAttribute('aria-pressed', String(active));
+        });
+        updateThemeColor();
+        try { localStorage.setItem('quillframe-palette', selected) } catch { }
+      }
       function projectId() { return crypto.randomUUID() }
       function loadLibrary() {
         try {
@@ -4431,6 +4589,7 @@
         $('#wordCount').textContent = count;
         $('#goalProgress').textContent = count;
         $('#dailyGoalInput').value = dailyGoal;
+        $('#settingsDailyGoal').textContent = dailyGoal.toLocaleString('zh-Hant');
         $('#goalBar').style.width = `${progress}%`;
         $('#goalPercent').textContent = `${progress}%`;
         const today = localDay(), days = Object.keys(state.logs).sort();
@@ -4547,7 +4706,15 @@
         updateRoleCast(scene);
         renderStats();
       }
-      function switchPage(name) { activePage = name; $$('.page').forEach(p => p.classList.toggle('active', p.id === `page-${name}`)); $$('[data-page]').forEach(el => el.classList.toggle('active', el.dataset.page === name)); if (name === 'checkin') renderCalendar(); if (name === 'write') updateNovel() }
+      function switchPage(name) {
+        activePage = name;
+        $$('.page').forEach(page => page.classList.toggle('active', page.id === `page-${name}`));
+        $$('[data-page]').forEach(button => button.classList.toggle('active', button.dataset.page === name));
+        const editorMode = $('#editorLayout').dataset.mode || 'article';
+        $$('[data-editor-mode]').forEach(button => button.classList.toggle('active', name === 'write' && button.dataset.editorMode === editorMode));
+        if (name === 'checkin') renderCalendar();
+        if (name === 'write') updateNovel();
+      }
       function setEditorMode(mode) {
         if (!['article', 'novel', 'roles', 'backgrounds'].includes(mode)) return;
         const editor = $('#editorLayout'), previousMode = editor.dataset.mode, scene = currentScene();
@@ -4785,7 +4952,10 @@
           toast(`無法匯入專案檔：${error.message || '格式無效，或 ZIP 圖片資料不完整。'}`);
         }
       }
-      applyTheme(document.documentElement.dataset.theme || 'light'); $('#themeToggle').addEventListener('click', () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
+      applyTheme(document.documentElement.dataset.theme || 'light');
+      applyPalette(document.documentElement.dataset.palette || 'sage');
+      $('#themeToggle').addEventListener('click', () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
+      $$('.palette-option').forEach(button => button.addEventListener('click', () => applyPalette(button.dataset.palette)));
       
       $$('[data-editor-mode]').forEach(button => button.addEventListener('click', () => {
         if (activePage !== 'write') switchPage('write');
