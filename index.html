@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#f4f3ee">
-  <title>Quillframe — 寫作與視覺小說工作室</title>
+  <title>Quillframe — Writing and Visual Novel Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -1731,7 +1731,7 @@
         font-size: 10px
       }
 
-      .topbar .top-action:not(.sync-btn) {
+      .topbar .top-action:not(.sync-btn):not(.language-toggle) {
         display: none
       }
 
@@ -3037,6 +3037,20 @@
       place-items: center
     }
 
+    .topbar .mobile-project-button,
+    .topbar .language-toggle,
+    .topbar .theme-toggle,
+    .topbar #exportTop,
+    .topbar #projectExportTop {
+      box-sizing: border-box;
+      height: 36px;
+      line-height: 1
+    }
+
+    .topbar .theme-toggle {
+      width: 36px
+    }
+
     .theme-toggle:hover {
       border-color: var(--green)
     }
@@ -3272,7 +3286,7 @@
       }
     }
   </style>
-  <script>try { if (localStorage.getItem('quillframe-theme') === 'dark') document.documentElement.dataset.theme = 'dark'; const palette = localStorage.getItem('quillframe-palette'); if (['sage', 'aqua', 'ember', 'khaki', 'mono'].includes(palette)) document.documentElement.dataset.palette = palette } catch { }</script>
+  <script>try { if (localStorage.getItem('quillframe-theme') === 'dark') document.documentElement.dataset.theme = 'dark'; const palette = localStorage.getItem('quillframe-palette'); if (['sage', 'aqua', 'ember', 'khaki', 'mono'].includes(palette)) document.documentElement.dataset.palette = palette; if (localStorage.getItem('quillframe-language') === 'en') document.documentElement.lang = 'en' } catch { }</script>
 </head>
 
 <body>
@@ -3283,6 +3297,7 @@
       <button class="mobile-project-button" id="mobileProjectOpen" type="button">專案</button>
       <div class="top-spacer"></div>
       <div class="save-state"><span class="save-dot"></span><span id="saveStatus">已儲存至此裝置</span></div>
+      <button class="top-action language-toggle" id="languageToggle" type="button" aria-label="切換至英文" title="切換至英文">EN</button>
       <button class="theme-toggle" id="themeToggle" type="button" aria-label="切換黑夜模式" title="切換黑夜模式">☾</button><button
         class="top-action" id="exportTop">匯出</button><button class="top-action sync-btn" id="projectExportTop">下載專案 ZIP</button>
     </header>
@@ -3646,6 +3661,249 @@
       const sample = { name: '雨停之前', title: '雨落在沒有人的月台', subtitle: '第一章．潮汐的方向', body: '雨是從傍晚開始下的。\n\n我在月台等了很久，久到廣播裡的列車時刻變得像一首陌生的歌。月台另一端的自動販賣機亮著，藍白色的光映在水窪裡，像一小塊被遺忘的天空。\n\n「你也在等雨停嗎？」\n\n回頭時，少女站在雨線之外，手裡握著一把沒有打開的傘。她的制服袖口沾著水珠，胸前的名牌空白一片。\n\n我想起小時候母親說過，每一場雨都會替某個人保守一個秘密。那時我不相信。現在我仍然不相信，只是忽然不知道該怎麼回答她。\n\n「我在等一班不會來的車。」我說。\n\n她笑了，月台的燈也在這時一盞一盞亮起。', scenes: [{ id: 's1', title: '第一章｜潮汐的方向', text: '雨是從傍晚開始下的。我在月台等了很久，久到廣播裡的列車時刻變得像一首陌生的歌。\n\n「你也在等雨停嗎？」\n\n少女站在雨線之外，手裡握著一把沒有打開的傘。她的制服袖口沾著水珠，胸前的名牌空白一片。\n\n我想起小時候母親說過，每一場雨都會替某個人保守一個秘密。那時我不相信。現在我仍然不相信，只是忽然不知道該怎麼回答她。\n\n「我在等一班不會來的車。」我說。\n\n她笑了，月台的燈也在這時一盞一盞亮起。', character: '悠', background: '' }, { id: 's2', title: '第二章｜未寄出的信', text: '她把一封折得整整齊齊的信遞給我。信封上沒有地址，只有一個被雨暈開的日期。\n\n「如果你能回到那一天，會想對誰說什麼？」', character: '夏', background: '' }, { id: 's3', title: '終章｜海的另一邊', text: '雨停了。遠處的海面映出第一道晨光，我們都沒有再問那班列車會不會來。', character: '悠', background: '' }], assets: [], logs: {}, activeScene: 's1' };
       const $ = selector => document.querySelector(selector), $$ = selector => [...document.querySelectorAll(selector)];
       const paletteIds = ['sage', 'aqua', 'ember', 'khaki', 'mono'];
+      let language = document.documentElement.lang === 'en' ? 'en' : 'zh-Hant';
+      const originalText = new WeakMap(), originalAttributes = new WeakMap();
+      const translations = {
+        '目前專案': 'Current Project', '工作區': 'Workspace', '文章': 'Article', '視覺小說': 'Visual Novel',
+        '小說': 'Novel', '角色庫': 'Character Library', '角色': 'Characters', '背景圖片庫': 'Background Library',
+        '背景': 'Backgrounds', '素材庫': 'Asset Library', '素材': 'Assets', '匯出作品': 'Export',
+        '匯出': 'Export', '設定': 'Settings', '篇章與幕': 'Chapters & Acts', '寫作連續紀錄': 'Writing Streak',
+        '天持續書寫': 'day streak', '查看寫作日誌 →': 'View Writing Log →', '寫作日誌': 'Writing Log',
+        '每一段文字，都算數。': 'Every word counts.', '故事地圖': 'Story Map', '本月累積': 'This Month', '本月寫作': 'Writing Days',
+        '下載專案 ZIP': 'Download Project ZIP', '✳　靈感筆記': '✳ Idea Notes',
+        '最長連續': 'Longest Streak', '字': 'words', '今日寫作目標': 'Daily Writing Goal',
+        '天': 'days', '日': 'Sun', '一': 'Mon', '二': 'Tue', '三': 'Wed', '四': 'Thu', '五': 'Fri', '六': 'Sat',
+        '日誌': 'Log', '＋　匯入圖片': '+ Import Images',
+        '切換深色模式': 'Toggle dark mode', '故事編輯': 'Story Editor', '加入圖片': 'Add Image',
+        '✳　我的靈感筆記': '✳ My Idea Notes', '✳ 我的靈感筆記': '✳ My Idea Notes',
+        '每日目標': 'Daily Goal', '今日已寫': 'Written Today', '本章素材': 'Chapter Assets',
+        '靈感筆記': 'Idea Notes', '我的靈感筆記': 'My Idea Notes', '快速靈感筆記內容': 'Quick note',
+        '快速靈感筆記標籤': 'Quick note tags', '記下正在寫作時想到的點子……': 'Jot down an idea while you write...',
+        '儲存筆記': 'Save Note', '儲存修改': 'Save Changes', '查看全部': 'View All',
+        '素材庫': 'Asset Library', '為故事收藏視覺線索。': 'Collect visual references for your story.',
+        '匯入圖片': 'Import Images', '把圖片拖曳到這裡，或點擊選取': 'Drop images here, or click to browse',
+        '支援 PNG、JPG、GIF、WebP、SVG、AVIF、HEIC 等瀏覽器可讀取的圖像格式': 'Supports browser-readable image formats, including PNG, JPG, GIF, WebP, SVG, AVIF, and HEIC.',
+        '搜尋圖片名稱、說明或標籤': 'Search image names, descriptions, or tags',
+        '搜尋圖片素材': 'Search image assets', '全部': 'All', '靈感筆記': 'Idea Notes',
+        '儲存、搜尋和整理寫作靈感，並用標籤快速篩選。': 'Save, search, and organize ideas with tags.',
+        '搜尋靈感筆記': 'Search idea notes', '搜尋筆記或標籤': 'Search notes or tags',
+        '靈感筆記內容': 'Idea note', '輸入一則靈感，按下儲存……': 'Write an idea, then save it...',
+        '靈感筆記標籤': 'Idea note tags', '標籤，以逗號分隔': 'Tags, separated by commas',
+        '取消編輯': 'Cancel Edit', '匯出作品': 'Export Your Work', '帶著故事離線出發。': 'Take your story offline.',
+        '文章 Markdown': 'Article Markdown', '適合備份、發佈與後續編輯': 'Ideal for backup, publishing, and further editing',
+        '文章網頁': 'Article Web Page', '獨立 HTML 文件，可離線閱讀': 'A standalone HTML file for offline reading',
+        '內含章節、對白與圖片的離線遊玩檔': 'An offline visual novel with chapters, dialogue, and images',
+        '完整專案 ZIP': 'Complete Project ZIP',
+        '包含文章、篇章、圖片原始檔與寫作紀錄，可在另一裝置匯入': 'Includes articles, chapters, original images, and writing logs for import on another device',
+        '在此裝置繼續編輯': 'Continue Editing on This Device',
+        '匯入 Quillframe ZIP 或舊版 JSON 專案檔，載入後會取代目前專案': 'Import a Quillframe ZIP or legacy JSON project. Importing replaces the current project.',
+        '下載 .md': 'Download .md', '下載 .html': 'Download .html', '下載 .zip': 'Download .zip',
+        '匯入 ZIP／JSON 專案檔': 'Import ZIP / JSON Project', '專案會自動儲存在此裝置。要在另一部裝置繼續編輯，請下載完整 ZIP 專案並在新裝置匯入；ZIP 內含文章、篇章、獨立圖片檔與寫作紀錄，不需雲端服務。也支援匯入舊版 JSON 專案檔。': 'Projects are saved on this device. To continue on another device, download the complete project ZIP and import it there. The ZIP includes articles, chapters, original images, and writing logs. No cloud service is required. Legacy JSON project files are also supported.',
+        '你的寫作，應該由你掌握。': 'Your writing, your way.',
+        '編輯介面主題': 'Editor Theme', '選擇介面配色，再用頂端的月亮／太陽按鈕切換淺色或深色模式。主題會儲存在此裝置。': 'Choose a color palette, then use the moon/sun button above to switch between light and dark mode. Your preferences are saved on this device.',
+        '原始綠灰': 'Classic Sage', 'Quillframe 經典配色': 'The original Quillframe palette',
+        '水色與黑色': 'Aqua & Black', '清透水色搭配深黑灰': 'Fresh aqua paired with deep charcoal',
+        '紅色與橙色': 'Red & Orange', '暖色紙感與紅橙重點色': 'Warm paper tones with red-orange accents',
+        '卡其色': 'Khaki', '沉穩大地色與柔和金棕': 'Earthy tones with soft golden brown',
+        '純白灰調': 'Monochrome', '簡潔的黑、白與中性灰': 'Clean white, black, and neutral gray',
+        '編輯介面配色': 'Editor color palette', '本機儲存': 'Local Storage',
+        '所有專案都會分別自動儲存在目前瀏覽器。跨裝置移轉請使用「匯出作品」中的完整 ZIP 專案，並在另一裝置匯入。': 'Projects are saved separately in this browser. To transfer between devices, export the complete project ZIP and import it on the other device.',
+        '清除本機專案資料': 'Clear Local Project Data', '每日寫作目標': 'Daily Writing Goal',
+        '目前目標為': 'Current goal:', '字；每日完成寫作後會記錄日期與當日字數。': 'words; your writing date and word count are recorded after you write each day.',
+        '目前篇章或幕名稱': 'Current chapter or act', '文章標題': 'Article title', '副標題': 'Subtitle',
+        '字級': 'Font size', '小': 'Small', '標準': 'Medium', '大': 'Large',
+        '粗體': 'Bold', '斜體': 'Italic', '底線': 'Underline', '標題': 'Heading',
+        '引用': 'Quote', '項目清單': 'Bulleted list', '文字格式工具': 'Text formatting toolbar',
+        '故事從這裡開始……': 'Your story starts here...', '◷　完成今日寫作': '◷ Complete Today’s Writing',
+        '寫下 1 個字就能留下今天的紀錄': 'Write at least one word to log today’s progress',
+        '每句自動成為小說分段，空白行保留段落；文章與小說同步，可在下方逐句指定背景。標記：': 'Each sentence becomes a visual novel line; blank lines mark paragraph breaks. The article and novel stay in sync. Assign backgrounds to individual lines below. Markers: ',
+        '隱藏所選文字': 'Hide Selected Text', '插入斷句': 'Insert Line Break',
+        '下一句　→': 'Next Line →', '寫下視覺小說場景與對白……': 'Write visual novel scenes and dialogue...',
+        '場景背景': 'Scene background', '角色資料庫': 'Character Library',
+        '整理角色形象、個性與故事背景，並管理角色立繪。': 'Organize character appearance, personality, backstory, and portraits.',
+        '＋ 新增角色': '+ Add Character', '角色名單': 'Character List', '角色名稱': 'Character Name',
+        '角色簡介': 'Character Summary', '用一句話介紹這個角色': 'Describe this character in one sentence',
+        '外觀與設計': 'Appearance & Design', '整理髮型、服裝、特徵與代表色。': 'Describe hairstyle, clothing, features, and signature colors.',
+        '髮型、服裝、特徵、色彩等': 'Hairstyle, clothing, features, colors, etc.',
+        '性格與動機': 'Personality & Motivation', '描寫個性、目標，以及角色行動的理由。': 'Describe personality, goals, and motivations.',
+        '個性特質、目標、擔憂、行動動機等': 'Traits, goals, worries, motivations, etc.',
+        '背景與關係': 'Background & Relationships', '補充經歷、世界觀背景與重要人際關係。': 'Add life history, world-building, and key relationships.',
+        '角色經歷、成長背景、與其他角色的關係等': 'Character history, upbringing, relationships, etc.',
+        '▧　設定／更換立繪': '▧ Set / Change Portrait', '移除立繪': 'Remove Portrait',
+        '刪除角色': 'Delete Character', '儲存角色資料': 'Save Character',
+        '角色立繪預覽': 'Character portrait preview', '背景圖片庫': 'Background Image Library',
+        '管理專案圖片，並將背景直接套用到目前選取的小說句子。': 'Manage project images and apply a background to the selected visual novel line.',
+        '＋ 新增背景圖片': '+ Add Background Image', '目前句子': 'Current Line', '尚未選取句子': 'No line selected',
+        '← 上一句': '← Previous Line', '下一句 →': 'Next Line →', '清除此句背景': 'Clear Line Background',
+        '篇章與幕': 'Chapters & Acts', '▧　設定地圖背景': '▧ Set Map Background',
+        '清除背景': 'Clear Background', '＋　新增篇章': '+ Add Chapter', '＋　新增幕': '+ Add Act',
+        '先新增篇章或幕 · 點節點編輯內容 · 拖曳調整位置': 'Add a chapter or act, select a node to edit, or drag to reposition.',
+        '節點名稱': 'Node Name', '節點類型': 'Node Type', '篇章': 'Chapter', '幕': 'Act',
+        '所屬篇章': 'Parent Chapter', '刪除此節點': 'Delete Node',
+        '新增地圖節點': 'Add Story Node', '建立篇章，或將新的一幕放進既有篇章。': 'Create a chapter or add an act to an existing chapter.',
+        '例如：雨停之後': 'e.g. After the Rain', '取消': 'Cancel', '建立節點': 'Create Node',
+        '專案': 'Projects', '切換專案': 'Switch Project', '新增專案': 'New Project',
+        '刪除目前專案': 'Delete Current Project', '新增篇章或幕': 'Add Chapter or Act',
+        '章節': 'Chapter', '查看寫作日誌 →': 'View Writing Log →',
+        '先新增一個篇章': 'Add a chapter first', '設定地圖背景': 'Set Map Background',
+        '選擇背景圖片': 'Select a background image', '不設定背景': 'No background',
+        '上傳圖片': 'Upload Image', '套用至此句': 'Apply to This Line',
+        '先新增小說句子': 'Add a visual novel line first', '移除': 'Remove',
+        '背景圖片庫還是空的。使用「新增背景圖片」匯入圖片。': 'The background library is empty. Use “Add Background Image” to import images.',
+        '尚無可設定背景的句子': 'No lines available for backgrounds',
+        '先在「視覺小說」編輯正文或對白，再回來選擇背景。': 'Add story text or dialogue in Visual Novel, then return to choose a background.',
+        '搜尋圖片名稱、說明或標籤': 'Search image names, descriptions, or tags',
+        '搜尋圖片素材': 'Search image assets', '找不到符合條件的圖片。': 'No images match your search.',
+        '還沒有圖片素材。匯入圖片後，可編輯名稱、說明及標籤。': 'No image assets yet. Import images to edit their names, descriptions, and tags.',
+        '尚未加入圖片素材': 'No images added yet', '搜尋筆記或標籤': 'Search notes or tags',
+        '輸入一則靈感，按下儲存……': 'Write an idea, then save it...',
+        '儲存的靈感會顯示在這裡。': 'Saved ideas will appear here.', '找不到符合條件的筆記。': 'No notes match your search.',
+        '編輯': 'Edit', '刪除': 'Delete', '管理專案': 'Manage Projects',
+        '每個專案都會分別自動儲存在此裝置。': 'Each project is saved separately on this device.',
+        '刪除專案': 'Delete Project', '關閉': 'Close', '新增專案': 'New Project',
+        '確認刪除專案？': 'Delete this project?', '即將永久刪除以下專案及其本機內容：': 'The following project and its local data will be permanently deleted:',
+        '此操作無法復原。若要保留內容，請先下載完整專案 ZIP 備份。': 'This cannot be undone. Download a complete project ZIP first if you want to keep this data.',
+        '刪除專案': 'Delete Project', '新增地圖節點': 'Add Story Node',
+        '文章正文': 'Article Text', '視覺小說對白': 'Visual Novel Dialogue',
+        '編輯內容': 'Edit Content', '地圖結構': 'Story Map',
+        '角色資料已儲存。': 'Character saved.', '角色已刪除。': 'Character deleted.',
+        '圖片資料已儲存。': 'Image details saved.', '靈感筆記已儲存。': 'Idea note saved.',
+        '專案已刪除。': 'Project deleted.', '完整專案 ZIP 已準備好下載。': 'Complete project ZIP is ready to download.',
+        '作品已準備好下載。': 'Your work is ready to download.', '完整專案檔已匯入。': 'Project imported successfully.',
+        '已儲存至此裝置': 'Saved on this device', '儲存中…': 'Saving…', '儲存空間不足': 'Storage is full',
+        '✓　今日已完成': '✓ Today’s Goal Complete', '◷　完成今日寫作': '◷ Complete Today’s Writing',
+        '未命名專案': 'Untitled Project', '未命名節點': 'Untitled Node',
+        '切換至英文': 'Switch to English', '切換至繁體中文': 'Switch to Traditional Chinese',
+        '無法讀取 ': 'Could not read ', '圖片素材 ': 'Image Asset ',
+        '目標為': 'Goal:', '全部': 'All', '今天的寫作已記錄，明天也來寫一點吧。': 'Today’s writing has been logged. See you tomorrow!',
+        '請先輸入靈感內容。': 'Please enter an idea first.', '請先輸入圖片名稱。': 'Please enter an image name.',
+        '請輸入角色名稱。': 'Please enter a character name.', '已有同名角色，請選擇其他名稱。': 'A character with this name already exists. Choose another name.',
+        '已有同名角色，請先儲存或更正目前角色名稱。': 'A character with this name already exists. Save or change the current name first.',
+        '至少保留一個角色。': 'At least one character must remain.', '至少保留一個專案。': 'At least one project must remain.',
+        '至少保留一個地圖節點。': 'At least one story node must remain.',
+        '此篇章仍有幕，請先刪除或移動其下的幕。': 'This chapter still contains acts. Delete or move them first.',
+        '請先新增一個篇章，才能建立幕。': 'Add a chapter before creating an act.',
+        '請選擇圖片檔案。': 'Please select an image file.',
+        '每個分段最多設定四名出場角色。': 'Each line can have up to four on-screen characters.',
+        '請先選取要隱藏的文字。': 'Select text to hide first.',
+        '每日目標請設定為 1 至 1,000,000 的整數。': 'Set the daily goal to a whole number between 1 and 1,000,000.',
+        '找不到正在編輯的筆記，請重新輸入。': 'The note being edited could not be found. Please enter it again.',
+        '未儲存的靈感筆記已清空。': 'The unsaved idea note was cleared.',
+        '請輸入節點名稱。': 'Please enter a node name.',
+        '先寫下一些文字，再完成今日寫作。': 'Write something before completing today’s goal.',
+        '圖片匯入中；大型素材建議控制在 5 MB 以內。': 'Importing images. Keep large assets under 5 MB for best results.',
+        '圖片資料已儲存。': 'Image details saved.',
+        '地圖背景已更新。': 'Map background updated.',
+        '請先輸入靈感內容。': 'Please enter an idea first.',
+        '要先新增一個篇章才能建立幕。': 'Add a chapter before creating an act.',
+        '已儲存至此裝置': 'Saved on this device', '儲存中…': 'Saving…', '儲存空間不足': 'Storage is full',
+        '每日目標請設定為 1 至 1,000,000 的整數。': 'Set the daily goal to a whole number between 1 and 1,000,000.',
+        '無法清除本機專案資料，請檢查瀏覽器儲存權限。': 'Could not clear local project data. Check your browser storage permissions.',
+        '瀏覽器儲存空間不足，請匯出備份或移除大型圖片。': 'Browser storage is full. Export a backup or remove large images.',
+        '無法儲存專案，請匯出備份或移除大型圖片。': 'Could not save the project. Export a backup or remove large images.',
+        '無法儲存專案。': 'Could not save the project.',
+        '本機儲存空間不足': 'Local storage is full',
+        '切換至繁體中文': 'Switch to Traditional Chinese',
+        '段落': 'paragraph', '場景背景': 'Scene background',
+        '刪除章節': 'Delete Chapter', '刪除圖片': 'Delete Image', '刪除靈感筆記': 'Delete Idea Note',
+        '圖片名稱': 'Image Name', '圖片說明': 'Image Description', '圖片標籤': 'Image Tags',
+        '圖片說明（選填）': 'Image description (optional)', '標籤，以逗號分隔': 'Tags, separated by commas',
+        '名稱或標籤': 'Name or tags', '設定／更換立繪': 'Set / Change Portrait',
+        '外觀與設計': 'Appearance & Design', '角色背景': 'Character Background',
+        '段落': 'paragraph', '場景': 'Scene', '章': 'Chapter'
+      };
+      function translateText(value) {
+        if (!value) return value;
+        const leading = value.match(/^\s*/)?.[0] || '', trailing = value.match(/\s*$/)?.[0] || '';
+        const text = value.trim().replace(/\s+/g, ' ');
+        if (language !== 'en') return value;
+        const translation = translations[text] || translations[text.replace(/ /g, '　')];
+        if (translation) return `${leading}${translation}${trailing}`;
+        let match = text.match(/^(\d+) 個專案$/);
+        if (match) return `${leading}${match[1]} project${match[1] === '1' ? '' : 's'}${trailing}`;
+        match = text.match(/^(\d+) 位$/);
+        if (match) return `${leading}${match[1]} character${match[1] === '1' ? '' : 's'}${trailing}`;
+        match = text.match(/^(\d+) 則已儲存$/);
+        if (match) return `${leading}${match[1]} saved note${match[1] === '1' ? '' : 's'}${trailing}`;
+        match = text.match(/^顯示 (\d+) \/ (\d+) 張圖片$/);
+        if (match) return `${leading}Showing ${match[1]} of ${match[2]} images${trailing}`;
+        match = text.match(/^(\d+) 張圖片$/);
+        if (match) return `${leading}${match[1]} image${match[1] === '1' ? '' : 's'}${trailing}`;
+        match = text.match(/^第 (\d+) 句背景$/);
+        if (match) return `${leading}Background for line ${match[1]}${trailing}`;
+        match = text.match(/^第 (\d+) 句$/);
+        if (match) return `${leading}Line ${match[1]}${trailing}`;
+        match = text.match(/^第 (\d+) 句／共 (\d+) 句$/);
+        if (match) return `${leading}Line ${match[1]} of ${match[2]}${trailing}`;
+        match = text.match(/^第 (\d+)\/(\d+) 句 · 下一句　→$/);
+        if (match) return `${leading}Line ${match[1]}/${match[2]} · Next →${trailing}`;
+        match = text.match(/^(\d+) 字$/);
+        if (match) return `${leading}${match[1]} words${trailing}`;
+        match = text.match(/^(\d+) 字／(\d+) 字$/);
+        if (match) return `${leading}${match[1]} / ${match[2]} words${trailing}`;
+        match = text.match(/^依標籤 (.+) 篩選圖片$/);
+        if (match) return `${leading}Filter images by tag ${match[1]}${trailing}`;
+        match = text.match(/^確定刪除角色「(.+)」？相關分段的出場設定也會移除。$/);
+        if (match) return `${leading}Delete character “${match[1]}”? They will also be removed from scene cast settings.${trailing}`;
+        match = text.match(/^確定刪除圖片「(.+)」？使用此圖片的句子背景也會一併清除。$/);
+        if (match) return `${leading}Delete image “${match[1]}”? Any lines using it as a background will also be cleared.${trailing}`;
+        match = text.match(/^(.+)與(.+)目前內容不同。要以(.+)更新(.+)並切換編輯模式嗎？$/);
+        if (match) return `${leading}${match[1]} and ${match[2]} differ. Replace ${match[4]} with ${match[3]} and switch editing modes?${trailing}`;
+        match = text.match(/^已切換至「(.+)」。$/);
+        if (match) return `${leading}Switched to “${match[1]}”.${trailing}`;
+        return value;
+      }
+      function confirmAction(message) { return window.confirm(translateText(message)); }
+      function isUserContentNode(node) {
+        return Boolean(node.parentElement?.closest('.scene-title, .crumb, .inspiration-note-content, .asset-library-description, .background-asset-description, .role-directory-name, .map-label, .stage-dialogue p, .stage-dialogue strong, .fragment-source-text, .fragment-dialogue-text'));
+      }
+      function translateTextNode(node) {
+        if (isUserContentNode(node)) return;
+        if (!originalText.has(node)) originalText.set(node, node.nodeValue);
+        const translated = translateText(originalText.get(node));
+        if (node.nodeValue !== translated) node.nodeValue = translated;
+      }
+      function translateAttribute(element, attribute) {
+        if (element.id === 'languageToggle') return;
+        if (!element.hasAttribute(attribute)) return;
+        let originals = originalAttributes.get(element);
+        if (!originals) {
+          originals = new Map();
+          originalAttributes.set(element, originals);
+        }
+        if (!originals.has(attribute)) originals.set(attribute, element.getAttribute(attribute));
+        const translated = translateText(originals.get(attribute));
+        if (element.getAttribute(attribute) !== translated) element.setAttribute(attribute, translated);
+      }
+      function translateSubtree(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          translateTextNode(node);
+          return;
+        }
+        if (node.nodeType !== Node.ELEMENT_NODE) return;
+        for (const attribute of ['placeholder', 'aria-label', 'aria-description', 'title', 'alt']) translateAttribute(node, attribute);
+        node.childNodes.forEach(translateSubtree);
+      }
+      function translatePage() {
+        document.documentElement.lang = language === 'en' ? 'en' : 'zh-Hant';
+        document.title = language === 'en' ? 'Quillframe — Writing and Visual Novel Studio' : 'Quillframe — 寫作與視覺小說工作室';
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        const textNodes = [];
+        while (walker.nextNode()) textNodes.push(walker.currentNode);
+        textNodes.forEach(translateTextNode);
+        document.body.querySelectorAll('[placeholder], [aria-label], [aria-description], [title], img[alt]').forEach(element => {
+          for (const attribute of ['placeholder', 'aria-label', 'aria-description', 'title', 'alt']) translateAttribute(element, attribute);
+        });
+        const languageToggle = $('#languageToggle');
+        languageToggle.textContent = language === 'en' ? '繁中' : 'EN';
+        languageToggle.setAttribute('aria-label', language === 'en' ? 'Switch to Traditional Chinese' : '切換至英文');
+        languageToggle.title = language === 'en' ? 'Switch to Traditional Chinese' : '切換至英文';
+      }
+      function applyLanguage(nextLanguage) {
+        language = nextLanguage === 'en' ? 'en' : 'zh-Hant';
+        translatePage();
+        try { localStorage.setItem('quillframe-language', language === 'en' ? 'en' : 'zh-Hant') } catch { }
+      }
       function updateThemeColor() {
         document.querySelector('meta[name="theme-color"]').content = getComputedStyle(document.documentElement).getPropertyValue('--paper').trim();
       }
@@ -3705,7 +3963,7 @@
         localStorage.removeItem(STORAGE_KEY);
       }
       function persist() { clearTimeout(saveTimer); $('#saveStatus').textContent = '儲存中…'; saveTimer = setTimeout(() => { try { saveLibraryNow(); $('#saveStatus').textContent = '已儲存至此裝置'; renderStats() } catch { $('#saveStatus').textContent = '儲存空間不足'; toast('瀏覽器儲存空間不足，請匯出備份或移除大型圖片。') } }, 220) }
-      function toast(message) { const element = $('#toast'); element.textContent = message; element.classList.add('show'); clearTimeout(toast.timer); toast.timer = setTimeout(() => element.classList.remove('show'), 2600) }
+      function toast(message) { const element = $('#toast'); element.textContent = translateText(message); element.classList.add('show'); clearTimeout(toast.timer); toast.timer = setTimeout(() => element.classList.remove('show'), 2600) }
       function words(text) { const value = text.trim(); if (!value) return 0; const chinese = (value.match(/[\u3400-\u9fff\uf900-\ufaff]/g) || []).length; const latin = (value.match(/[A-Za-z0-9]+(?:['’-][A-Za-z0-9]+)*/g) || []).length; return chinese + latin }
       function localDay(date = new Date()) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` }
       function currentScene() { return state.scenes.find(scene => scene.id === state.activeScene) || state.scenes[0] }
@@ -3818,7 +4076,7 @@
       function deleteRole() {
         const name = roleLibrarySelected;
         if (characterNames().length < 2) return toast('至少保留一個角色。');
-        if (!window.confirm(`確定刪除角色「${name}」？相關分段的出場設定也會移除。`)) return;
+        if (!confirmAction(`確定刪除角色「${name}」？相關分段的出場設定也會移除。`)) return;
         delete state.characters[name];
         state.scenes.forEach(scene => {
           if (scene.character === name) scene.character = characterNames()[0];
@@ -4277,7 +4535,7 @@
           remove.textContent = '刪除';
           remove.setAttribute('aria-label', '刪除靈感筆記');
           remove.addEventListener('click', () => {
-            if (!window.confirm('確定刪除這則靈感筆記？')) return;
+            if (!confirmAction('確定刪除這則靈感筆記？')) return;
             state.inspirationNotes = state.inspirationNotes.filter(item => item.id !== note.id);
             if (inspirationEditingId === note.id) resetInspirationEditor();
             renderInspirationNotes();
@@ -4569,7 +4827,7 @@
       function removeAsset(i) {
         const removed = state.assets[i];
         if (!removed) return;
-        if (!window.confirm(`確定刪除圖片「${removed.name || `圖片素材 ${i + 1}`}」？使用此圖片的句子背景也會一併清除。`)) return;
+        if (!confirmAction(`確定刪除圖片「${removed.name || `圖片素材 ${i + 1}`}」？使用此圖片的句子背景也會一併清除。`)) return;
         state.assets.splice(i, 1);
         state.scenes.forEach(scene => {
           if (scene.background === removed.data) { delete scene.background; delete scene.backgroundName }
@@ -4726,7 +4984,7 @@
           if (source !== target) {
             const sourceLabel = previousMode === 'article' ? '文章正文' : '視覺小說對白';
             const targetLabel = previousMode === 'article' ? '視覺小說對白' : '文章正文';
-            if (!window.confirm(`${sourceLabel}與${targetLabel}目前內容不同。要以${sourceLabel}更新${targetLabel}並切換編輯模式嗎？`)) return;
+            if (!confirmAction(`${sourceLabel}與${targetLabel}目前內容不同。要以${sourceLabel}更新${targetLabel}並切換編輯模式嗎？`)) return;
             syncSceneText(scene, previousMode === 'novel' ? (scene.text || '') : source, previousMode === 'novel' ? 'novel' : 'article');
             persist();
           }
@@ -4930,7 +5188,7 @@
       function formatText(format) { const input = $('#articleBody'), scene = currentScene(), start = input.selectionStart, end = input.selectionEnd, selected = input.value.slice(start, end) || '文字', pairs = { bold: ['**', '**'], italic: ['*', '*'], underline: ['<u>', '</u>'], quote: ['> ', ''], h2: ['## ', ''], list: ['- ', ''] }, [before, after] = pairs[format]; let replacement; if (format === 'quote' || format === 'h2' || format === 'list') replacement = selected.split('\n').map(line => before + line).join('\n'); else replacement = before + selected + after; input.setRangeText(replacement, start, end, 'select'); input.focus(); if (scene) syncSceneText(scene, input.value); persist() }
       function imageImport(files) { [...files].forEach(file => { if (!file.type.startsWith('image/')) return; const reader = new FileReader(); reader.onload = () => { state.assets.push({ name: file.name, description: '', tags: [], type: file.type, data: reader.result }); renderAssets(); renderBackgroundLibrary(); persist() }; reader.onerror = () => toast(`無法讀取 ${file.name}`); reader.readAsDataURL(file) }); if (files.length) toast('圖片匯入中；大型素材建議控制在 5 MB 以內。') }
       async function importBackup(file) {
-        if (!window.confirm('匯入會取代目前裝置上的專案。建議先下載備份檔，確定要繼續嗎？')) return;
+        if (!confirmAction('匯入會取代目前裝置上的專案。建議先下載備份檔，確定要繼續嗎？')) return;
         try {
             let restored;
             const signature = new Uint8Array(await file.slice(0, 4).arrayBuffer());
@@ -4956,6 +5214,7 @@
       applyPalette(document.documentElement.dataset.palette || 'sage');
       $('#themeToggle').addEventListener('click', () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
       $$('.palette-option').forEach(button => button.addEventListener('click', () => applyPalette(button.dataset.palette)));
+      $('#languageToggle').addEventListener('click', () => applyLanguage(language === 'en' ? 'zh-Hant' : 'en'));
       
       $$('[data-editor-mode]').forEach(button => button.addEventListener('click', () => {
         if (activePage !== 'write') switchPage('write');
@@ -5120,8 +5379,14 @@
       $('#clearMapBackground').addEventListener('click', () => { state.map.background = ''; state.map.backgroundName = ''; renderStoryNavigation(); persist() });
       $('#addChapterNode').addEventListener('click', () => openNodeModal('chapter')); $('#addActNode').addEventListener('click', () => openNodeModal('act'));
       $('#deleteMapPoint').addEventListener('click', () => { const scene = currentScene(); if (scene) deleteStoryNode(scene.id) });
-      $('#clearLocal').addEventListener('click', () => { if (!window.confirm('確定清除此裝置的所有專案資料？此操作無法復原。')) return; clearTimeout(saveTimer); try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(PROJECTS_KEY); location.reload() } catch { toast('無法清除本機專案資料，請檢查瀏覽器儲存權限。') } });
-      $$('[data-page]').forEach(button => button.addEventListener('click', () => { const page = button.dataset.page; switchPage(page); if (page === 'write') setEditorMode('article') })); $('#exportTop').addEventListener('click', () => switchPage('export')); $('#projectExportTop').addEventListener('click', () => doExport('zip')); $$('[data-export]').forEach(button => button.addEventListener('click', () => doExport(button.dataset.export))); $('#importProject').addEventListener('click', () => $('#projectInput').click()); $('#projectInput').addEventListener('change', event => { const [file] = event.target.files || []; if (file) importBackup(file); event.target.value = ''; }); render(); persist();
+      $('#clearLocal').addEventListener('click', () => { if (!confirmAction('確定清除此裝置的所有專案資料？此操作無法復原。')) return; clearTimeout(saveTimer); try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(PROJECTS_KEY); location.reload() } catch { toast('無法清除本機專案資料，請檢查瀏覽器儲存權限。') } });
+      $$('[data-page]').forEach(button => button.addEventListener('click', () => { const page = button.dataset.page; switchPage(page); if (page === 'write') setEditorMode('article') })); $('#exportTop').addEventListener('click', () => switchPage('export')); $('#projectExportTop').addEventListener('click', () => doExport('zip')); $$('[data-export]').forEach(button => button.addEventListener('click', () => doExport(button.dataset.export))); $('#importProject').addEventListener('click', () => $('#projectInput').click()); $('#projectInput').addEventListener('change', event => { const [file] = event.target.files || []; if (file) importBackup(file); event.target.value = ''; }); render(); persist(); applyLanguage(language);
+      const languageObserver = new MutationObserver(records => records.forEach(record => {
+        if (record.type === 'characterData') translateTextNode(record.target);
+        else if (record.type === 'attributes') translateAttribute(record.target, record.attributeName);
+        else record.addedNodes.forEach(translateSubtree);
+      }));
+      languageObserver.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['placeholder', 'aria-label', 'aria-description', 'title', 'alt'] });
     })();
   </script>
 </body>
