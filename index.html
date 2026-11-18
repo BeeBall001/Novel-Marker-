@@ -1147,6 +1147,26 @@
       color: var(--muted)
     }
 
+    .fragment-lock-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      margin-top: 8px
+    }
+
+    .fragment-lock-row label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--muted);
+      font: 11px var(--sans);
+      cursor: pointer
+    }
+
+    .fragment-lock-row input {
+      accent-color: var(--accent)
+    }
+
     @media(max-width:620px) {
       .fragment-text-pair {
         grid-template-columns: 1fr
@@ -4416,6 +4436,31 @@
       function toast(message) { const element = $('#toast'); element.textContent = translateText(message); element.classList.add('show'); clearTimeout(toast.timer); toast.timer = setTimeout(() => element.classList.remove('show'), 2600) }
       function words(text) { const value = text.trim(); if (!value) return 0; const chinese = (value.match(/[\u3400-\u9fff\uf900-\ufaff]/g) || []).length; const latin = (value.match(/[A-Za-z0-9]+(?:['’-][A-Za-z0-9]+)*/g) || []).length; return chinese + latin }
       function localDay(date = new Date()) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` }
+      function projectWrittenWords() {
+        return (state.scenes || []).reduce((sum, scene) => sum + words(scene?.articleBody || scene?.text || ''), 0);
+      }
+      function ensureDailyProgress() {
+        const today = localDay();
+        const resetKey = 'quillframe-daily-progress-v1';
+        if (state[resetKey] !== true) {
+          state.logs = {};
+          state[resetKey] = true;
+        }
+        if (!state.dailyProgress || typeof state.dailyProgress !== 'object') {
+          state.dailyProgress = { date: today, baseline: projectWrittenWords() };
+        } else if (state.dailyProgress.date !== today) {
+          state.dailyProgress = { date: today, baseline: projectWrittenWords() };
+          return true;
+        } else if (!Number.isFinite(state.dailyProgress.baseline)) {
+          state.dailyProgress.baseline = projectWrittenWords();
+        }
+        return false;
+      }
+      function todayWrittenWords() {
+        ensureDailyProgress();
+        const count = projectWrittenWords();
+        return Math.max(0, count - (Number(state.dailyProgress.baseline) || 0));
+      }
       function currentScene() { return state.scenes.find(scene => scene.id === state.activeScene) || state.scenes[0] }
       function parseNovelText(text) {
         const articleText = text.replace(/\[\[hide\]\]([\s\S]*?)\[\[\/hide\]\]/g, '$1').replace(/\[\[break\]\]/g, '');
@@ -4563,6 +4608,8 @@
         if (previous.length === steps.length && steps.every((sourceText, index) => previous[index]?.sourceText === sourceText)) {
           previous.forEach(fragment => {
             if (typeof fragment.text !== 'string') fragment.text = fragment.sourceText;
+            if (typeof fragment.articleLocked !== 'boolean') fragment.articleLocked = false;
+            if (typeof fragment.novelLocked !== 'boolean') fragment.novelLocked = false;
             if (!steps.includes(fragment.sourceSentence)) fragment.sourceSentence = fragment.sourceText;
             if (typeof fragment.speaker !== 'string' || !state.characters[fragment.speaker]) fragment.speaker = scene.character || '旁白';
             if (!Number.isInteger(fragment.backgroundAssetIndex)) fragment.backgroundAssetIndex = legacyBackgroundIndex;
@@ -4592,9 +4639,12 @@
           const saved = previous[previousIndexes[index]];
           const legacyCast = Array.isArray(scene.cast?.[index]) ? scene.cast[index] : null;
           return {
+            id: typeof saved?.id === 'string' ? saved.id : crypto.randomUUID(),
             sourceText,
             sourceSentence: typeof saved?.sourceSentence === 'string' && steps.includes(saved.sourceSentence) ? saved.sourceSentence : sourceText,
             text: typeof saved?.text === 'string' ? saved.text : sourceText,
+            articleLocked: typeof saved?.articleLocked === 'boolean' ? saved.articleLocked : false,
+            novelLocked: typeof saved?.novelLocked === 'boolean' ? saved.novelLocked : false,
             speaker: typeof saved?.speaker === 'string' && state.characters[saved.speaker] ? saved.speaker : (scene.character || '旁白'),
             backgroundAssetIndex: Number.isInteger(saved?.backgroundAssetIndex) && state.assets[saved.backgroundAssetIndex]
               ? saved.backgroundAssetIndex
@@ -4692,12 +4742,43 @@
           dialogue.setAttribute('aria-label', `編輯第 ${index + 1} 句小說內容`);
           dialogue.addEventListener('input', () => {
             fragment.text = dialogue.value;
+            if (!fragment.articleLocked && !fragment.novelLocked) {
+              const oldSentence = fragment.sourceSentence || fragment.sourceText;
+              if (oldSentence && scene.articleBody.includes(oldSentence)) {
+                scene.articleBody = scene.articleBody.replace(oldSentence, dialogue.value);
+                scene.text = scene.text.replace(oldSentence, dialogue.value);
+                fragment.sourceSentence = dialogue.value;
+                fragment.sourceText = dialogue.value;
+              }
+            }
             renderStageDialogue(scene);
             persist();
           });
           dialogueLabel.append(dialogue);
           dialogueColumn.append(dialogueLabel);
           textPair.append(sourceColumn, dialogueColumn);
+          const lockRow = document.createElement('div');
+          lockRow.className = 'fragment-lock-row';
+          const articleLock = document.createElement('label');
+          const articleLockInput = document.createElement('input');
+          articleLockInput.type = 'checkbox';
+          articleLockInput.checked = Boolean(fragment.articleLocked);
+          articleLock.append(articleLockInput, document.createTextNode('鎖定文章句'));
+          articleLockInput.addEventListener('change', () => {
+            fragment.articleLocked = articleLockInput.checked;
+            persist();
+          });
+          const novelLock = document.createElement('label');
+          const novelLockInput = document.createElement('input');
+          novelLockInput.type = 'checkbox';
+          novelLockInput.checked = Boolean(fragment.novelLocked);
+          novelLock.append(novelLockInput, document.createTextNode('鎖定小說句'));
+          novelLockInput.addEventListener('change', () => {
+            fragment.novelLocked = novelLockInput.checked;
+            persist();
+          });
+          lockRow.append(articleLock, novelLock);
+          card.append(lockRow);
           const backgroundLabel = document.createElement('label');
           backgroundLabel.className = 'fragment-speaker';
           backgroundLabel.append(document.createTextNode('此句背景'));
@@ -5014,6 +5095,7 @@
         }
         normalizeInspirationNotes();
         if (!Number.isInteger(state.dailyGoal) || state.dailyGoal < 1 || state.dailyGoal > 1000000) state.dailyGoal = 500;
+        ensureDailyProgress();
         state.characters = state.characters || {};
         state.map = state.map || { background: '', backgroundName: '' };
         state.scenes.forEach((item, index) => {
@@ -5297,7 +5379,8 @@
         persist();
       }
       function renderStats() {
-        const count = words($('#articleBody').value), dailyGoal = state.dailyGoal || 500;
+        ensureDailyProgress();
+        const count = todayWrittenWords(), dailyGoal = state.dailyGoal || 500;
         const progress = Math.min(100, Math.round(count / dailyGoal * 100));
         $('#wordCount').textContent = count;
         $('#goalProgress').textContent = count;
@@ -5403,14 +5486,123 @@
       function createStoryNode() { const title = $('#newSceneTitle').value.trim(); if (!title) return toast('請輸入節點名稱。'); const kind = $('#newSceneType').value, parentId = kind === 'act' ? $('#newSceneParent').value : ''; if (kind === 'act' && !parentId) return toast('請先新增一個篇章，才能建立幕。'); const index = state.scenes.length, scene = { id: crypto.randomUUID(), kind, parentId, title, text: '', character: '悠', background: '', articleTitle: title, articleSubtitle: '', articleBody: '', mapX: 15 + (index * 19) % 72, mapY: 20 + (index * 23) % 65 }; state.scenes.push(scene); state.activeScene = scene.id; $('#newSceneTitle').value = ''; $('#sceneModal').classList.remove('open'); render(); setStoryView('scene'); persist() }
       function deleteStoryNode(id) { const scene = state.scenes.find(item => item.id === id); if (!scene) return; if (scene.kind !== 'act' && state.scenes.some(item => item.parentId === id)) { toast('此篇章仍有幕，請先刪除或移動其下的幕。'); return } if (state.scenes.length < 2) return toast('至少保留一個地圖節點。'); state.scenes = state.scenes.filter(item => item.id !== id); if (state.activeScene === id) state.activeScene = state.scenes[0].id; render(); persist() }
       function formatText(format) { const input = $('#articleBody'), scene = currentScene(), start = input.selectionStart, end = input.selectionEnd, selected = input.value.slice(start, end) || '文字', pairs = { bold: ['**', '**'], italic: ['*', '*'], underline: ['<u>', '</u>'], quote: ['> ', ''], h2: ['## ', ''], list: ['- ', ''] }, [before, after] = pairs[format]; let replacement; if (format === 'quote' || format === 'h2' || format === 'list') replacement = selected.split('\n').map(line => before + line).join('\n'); else replacement = before + selected + after; input.setRangeText(replacement, start, end, 'select'); input.focus(); if (scene) syncSceneText(scene, input.value); persist() }
-      function checkin() { const count = words($('#articleBody').value); if (!count) return toast('先寫下一些文字，再完成今日寫作。'); state.logs[localDay()] = count; persist(); renderStats(); toast('今天的寫作已記錄，明天也來寫一點吧。') }
+      function checkin() {
+        const count = todayWrittenWords();
+        if (!count) return toast('先在今日增加一些文字，再完成今日寫作。');
+        state.logs[localDay()] = count;
+        persist();
+        renderStats();
+        toast('今天的寫作已記錄，明天也來寫一點吧。');
+      }
       function syncSceneText(scene, text, source = 'article') {
         if (source === 'novel') {
+          const oldArticle = scene.articleBody || '';
+          const oldNovelText = scene.text || '';
+          const oldFragments = sceneFragments(scene);
+          const oldSteps = parseNovelText(oldNovelText).dialogueSteps;
+          const steps = parseNovelText(text).dialogueSteps;
+          const used = new Set();
+          let nextArticle = oldArticle;
+
+          steps.forEach((step, index) => {
+            let fragmentIndex = oldFragments.findIndex((item, itemIndex) =>
+              !used.has(itemIndex) && (item.sourceSentence === step || item.sourceText === step)
+            );
+            if (fragmentIndex < 0 && index < oldFragments.length) {
+              fragmentIndex = oldFragments.findIndex((item, itemIndex) => !used.has(itemIndex) && itemIndex === index);
+            }
+            if (fragmentIndex < 0) {
+              fragmentIndex = oldFragments.findIndex((item, itemIndex) => !used.has(itemIndex));
+            }
+            if (fragmentIndex < 0) return;
+            used.add(fragmentIndex);
+            const fragment = oldFragments[fragmentIndex];
+            if (fragment.articleLocked || fragment.novelLocked) return;
+            const oldSentence = fragment.sourceSentence || oldSteps[index] || fragment.sourceText;
+            fragment.sourceText = step;
+            fragment.sourceSentence = step;
+            fragment.text = step;
+            if (oldSentence && nextArticle.includes(oldSentence)) nextArticle = nextArticle.replace(oldSentence, step);
+          });
+
+          oldFragments.forEach((fragment, index) => {
+            if (fragment.articleLocked || fragment.novelLocked) return;
+            if (!used.has(index)) {
+              const deletedSentence = fragment.sourceSentence || fragment.sourceText;
+              if (deletedSentence && nextArticle.includes(deletedSentence)) {
+                nextArticle = nextArticle.replace(deletedSentence, '');
+              }
+            }
+          });
+
+          if (nextArticle !== oldArticle) {
+            nextArticle = nextArticle.replace(/\n{3,}/g, '\n\n').trim();
+          }
+          steps.forEach(step => {
+            const mapped = oldFragments.some(fragment => fragment.sourceSentence === step || fragment.sourceText === step);
+            if (!mapped && step && !nextArticle.includes(step)) {
+              nextArticle = `${nextArticle.trim()}${nextArticle.trim() ? '\n\n' : ''}${step}`;
+            }
+          });
+
           scene.text = text;
-          scene.articleBody = parseNovelText(text).articleText;
+          scene.articleBody = nextArticle;
         } else {
+          const oldFragments = sceneFragments(scene);
+          const oldNovelText = scene.text || '';
+          const newSteps = parseNovelText(text).dialogueSteps;
+          const previousTextSteps = parseNovelText(scene.articleBody || '').dialogueSteps;
+          const used = new Set();
+          const newFragments = newSteps.map((step, index) => {
+            let fragmentIndex = oldFragments.findIndex((item, itemIndex) =>
+              !used.has(itemIndex) && (item.sourceSentence === previousTextSteps[index] || item.sourceText === previousTextSteps[index])
+            );
+            if (fragmentIndex < 0) {
+              fragmentIndex = oldFragments.findIndex((item, itemIndex) =>
+                !used.has(itemIndex) && (item.sourceSentence === step || item.sourceText === step)
+              );
+            }
+            const saved = fragmentIndex >= 0 ? oldFragments[fragmentIndex] : null;
+            if (fragmentIndex >= 0) used.add(fragmentIndex);
+            return {
+              id: saved?.id || crypto.randomUUID(),
+              sourceText: step,
+              sourceSentence: step,
+              text: saved?.novelLocked || saved?.articleLocked
+                ? (saved.text || step)
+                : step,
+              articleLocked: Boolean(saved?.articleLocked),
+              novelLocked: Boolean(saved?.novelLocked),
+              speaker: saved?.speaker || scene.character || '旁白',
+              backgroundAssetIndex: Number.isInteger(saved?.backgroundAssetIndex) ? saved.backgroundAssetIndex : null,
+              cast: Array.isArray(saved?.cast) ? saved.cast.slice(0, 4) : []
+            };
+          });
+
+          let nextNovelText = oldNovelText;
+          oldFragments.forEach(fragment => {
+            const oldSource = fragment.sourceSentence || fragment.sourceText;
+            if (!oldSource) return;
+            const oldIndex = previousTextSteps.indexOf(oldSource);
+            const kept = fragment.novelLocked || fragment.articleLocked;
+            if (kept) return;
+            const newFragment = oldIndex >= 0 ? newFragments[oldIndex] : null;
+            if (newFragment && nextNovelText.includes(oldSource)) {
+              nextNovelText = nextNovelText.replace(oldSource, newFragment.text || newFragment.sourceText);
+            } else if (!newFragments.some(item => item.id === fragment.id) && nextNovelText.includes(oldSource)) {
+              nextNovelText = nextNovelText.replace(oldSource, '');
+            }
+          });
+
+          newFragments.forEach((fragment, index) => {
+            if (!oldFragments.some(item => item.id === fragment.id) && fragment.sourceText && !nextNovelText.includes(fragment.sourceText)) {
+              nextNovelText = `${nextNovelText.trimEnd()}${nextNovelText.trim() ? '\n\n' : ''}${fragment.sourceText}`;
+            }
+          });
+
           scene.articleBody = text;
-          scene.text = text;
+          scene.text = nextNovelText.trim() ? nextNovelText : text;
+          scene.fragments = newFragments;
         }
         state.body = scene.articleBody;
         $('#articleBody').value = scene.articleBody;
@@ -5437,9 +5629,6 @@
           const source = previousMode === 'article' ? (scene.articleBody || '') : novelArticleText;
           const target = previousMode === 'article' ? novelArticleText : (scene.articleBody || '');
           if (source !== target) {
-            const sourceLabel = previousMode === 'article' ? '文章正文' : '視覺小說對白';
-            const targetLabel = previousMode === 'article' ? '視覺小說對白' : '文章正文';
-            if (!confirmAction(`${sourceLabel}與${targetLabel}目前內容不同。要以${sourceLabel}更新${targetLabel}並切換編輯模式嗎？`)) return;
             syncSceneText(scene, previousMode === 'novel' ? (scene.text || '') : source, previousMode === 'novel' ? 'novel' : 'article');
             persist();
           }
@@ -5919,6 +6108,14 @@
       $('#clearLocal').addEventListener('click', () => { if (!confirmAction('確定清除此裝置的所有專案資料？此操作無法復原。')) return; clearTimeout(saveTimer); try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(PROJECTS_KEY); location.reload() } catch { toast('無法清除本機專案資料，請檢查瀏覽器儲存權限。') } });
       $$('[data-page]').forEach(button => button.addEventListener('click', () => { const page = button.dataset.page; switchPage(page); if (page === 'write') setEditorMode('article') })); $('#exportTop').addEventListener('click', () => switchPage('export')); $('#projectExportTop').addEventListener('click', () => doExport('zip')); $$('[data-export]').forEach(button => button.addEventListener('click', () => doExport(button.dataset.export))); $('#importProject').addEventListener('click', () => $('#projectInput').click()); $('#projectInput').addEventListener('change', event => { const [file] = event.target.files || []; if (file) importBackup(file); event.target.value = ''; }); render(); persist(); applyLanguage(language); renderCloudProjectList(); updateCloudControls();
       if (cloudConfig?.url && cloudConfig?.key) initializeCloudClient().catch(error => reportCloudError('無法初始化雲端服務', 'Could not initialize cloud service', error));
+      function refreshDailyProgressForDateChange() {
+        if (ensureDailyProgress()) persist();
+        renderStats();
+      }
+      setInterval(refreshDailyProgressForDateChange, 60000);
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) refreshDailyProgressForDateChange();
+      });
       const languageObserver = new MutationObserver(records => records.forEach(record => {
         if (record.type === 'characterData') translateTextNode(record.target);
         else if (record.type === 'attributes') translateAttribute(record.target, record.attributeName);
