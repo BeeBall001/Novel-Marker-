@@ -4364,6 +4364,7 @@
         projects = nextProjects;
         activeProjectId = remote.id;
         state = structuredClone(restoredData);
+        state.dailyProgress = { date: localDay(), baseline: projectWrittenWords() };
         render();
         if (!persistImmediately()) {
           projects = previousProjects;
@@ -4438,6 +4439,14 @@
       function localDay(date = new Date()) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` }
       function projectWrittenWords() {
         return (state.scenes || []).reduce((sum, scene) => sum + words(scene?.articleBody || scene?.text || ''), 0);
+      }
+      function projectArticleWords() {
+        return (state.scenes || []).reduce((sum, scene) => {
+          const article = typeof scene?.articleBody === 'string'
+            ? scene.articleBody
+            : (typeof scene?.text === 'string' ? scene.text : '');
+          return sum + words(article);
+        }, 0);
       }
       function ensureDailyProgress() {
         const today = localDay();
@@ -4918,6 +4927,7 @@
         const previousId = activeProjectId, previousState = state;
         activeProjectId = id;
         state = structuredClone(projects.find(project => project.id === id).data);
+        state.dailyProgress = { date: localDay(), baseline: projectWrittenWords() };
         stageLineIndex = 0;
         render();
         if (!persistImmediately()) { activeProjectId = previousId; state = previousState; renderProjects(); render(); return }
@@ -5380,10 +5390,12 @@
       }
       function renderStats() {
         ensureDailyProgress();
-        const count = todayWrittenWords(), dailyGoal = state.dailyGoal || 500;
-        const progress = Math.min(100, Math.round(count / dailyGoal * 100));
-        $('#wordCount').textContent = count;
-        $('#goalProgress').textContent = count;
+        const todayCount = todayWrittenWords();
+        const totalCount = projectArticleWords();
+        const dailyGoal = state.dailyGoal || 500;
+        const progress = Math.min(100, Math.round(todayCount / dailyGoal * 100));
+        $('#wordCount').textContent = totalCount.toLocaleString('zh-Hant');
+        $('#goalProgress').textContent = todayCount;
         $('#dailyGoalInput').value = dailyGoal;
         $('#settingsDailyGoal').textContent = dailyGoal.toLocaleString('zh-Hant');
         $('#goalBar').style.width = `${progress}%`;
@@ -5846,8 +5858,10 @@
             state = { ...structuredClone(sample), ...restored, scenes: restored.scenes, assets: Array.isArray(restored.assets) ? restored.assets : [], logs: restored.logs && typeof restored.logs === 'object' ? restored.logs : {} };
             delete state.google;
             state.scenes.forEach((scene, index) => { scene.kind = scene.kind || 'chapter'; scene.parentId = scene.parentId || ''; scene.articleTitle = scene.articleTitle || (index === 0 ? state.title : scene.title); scene.articleSubtitle = scene.articleSubtitle || (index === 0 ? state.subtitle : scene.title); scene.articleBody = scene.articleBody ?? (index === 0 ? state.body : (scene.text || '')) });
+            state.dailyProgress = { date: localDay(), baseline: projectWrittenWords() };
             persist();
             render();
+            renderStats();
             toast('完整專案檔已匯入。');
         } catch (error) {
           console.error('專案檔匯入失敗：', error);
